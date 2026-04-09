@@ -4,3 +4,10 @@ sqlalchemy
 python-multipart
 pydantic
 pydantic-settings
+chromadb
+langchain
+langchain-community
+langchain-openai
+langchain-google-genai
+langchain-anthropic
+sentence-transformers

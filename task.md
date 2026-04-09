@@ -45,16 +45,16 @@
     -   `[x]` Bóc tách PPTX/XLSX: Trích xuất slide content và hình ảnh biểu đồ.
     -   `[x]` Đồng bộ hóa việc lưu `Document ID` với file tải lên.
 
-- `[ ]` **Phase 2.5: Tích hợp Frontend & Backend (API Wiring)**
-    -   `[ ]` Tạo thư mục `frontend/src/api/` cấu hình `axios` instance với Base URL.
-    -   `[ ]` Làm mịn chức năng "Tải tài liệu lên": Gọi API `/upload`, hiển thị thanh tiến trình (Progress) hoặc trạng thái tải.
-    -   `[ ]` Quản lý danh sách Cây thư mục: Fetch dữ liệu Projects/Folders/Documents thực tế từ Server đổ vào Sidebar.
+- `[x]` **Phase 2.5: Tích hợp Frontend & Backend (API Wiring)**
+    -   `[x]` Tạo thư mục `frontend/src/api/` cấu hình `axios` instance với Base URL.
+    -   `[x]` Làm mịn chức năng "Tải tài liệu lên": Gọi API `/upload`, hiển thị thanh tiến trình (Progress) hoặc trạng thái tải.
+    -   `[x]` Quản lý danh sách Cây thư mục: Fetch dữ liệu Projects/Folders/Documents thực tế từ Server đổ vào Sidebar.
     -   `[x]` Bác Exception 404/500 từ Backend và thông báo ra Toast/Alert trên giao diện.
 
 - `[/]` **Phase 3: Tích hợp RAG (Retrieval-Augmented Generation) & Vector DB**
-    -   `[ ]` Nhúng ChromaDB: Tạo `vector_store.py` hỗ trợ Multi-Collections theo Project ID.
-    -   `[ ]` Abstract Embedding Factory: Tạo `embeddings.py` hỗ trợ `sentence-transformers` (miễn phí) thông qua interface chung để các Prompts và Logic dùng chuẩn 1 luồng.
-    -   `[ ]` Data Ingestion Pipeline: Cập nhật hàm xử lý background task trong `documents.py` để sau khi tách văn bản, nhúng vector vào ChromaDB.
+    -   `[x]` Nhúng ChromaDB: Tạo `vector_store.py` hỗ trợ Multi-Collections theo Project ID.
+    -   `[x]` Abstract Embedding Factory: Tạo `embeddings.py` hỗ trợ `sentence-transformers` (miễn phí) thông qua interface chung để các Prompts và Logic dùng chuẩn 1 luồng.
+    -   `[x]` Data Ingestion Pipeline: Cập nhật hàm xử lý background task trong `documents.py` để sau khi tách văn bản, nhúng vector vào ChromaDB.
 -   `[ ]` **Image Summarization Pipeline**:
     -   `[ ]` Quét các ảnh trích xuất từ tài liệu cấu trúc (PDF/PPTX).
     -   `[ ]` Chạy Gemini 1.5 Pro Vision: Sinh văn bản (Image Summary) tổng hợp nội dung ảnh.
@@ -69,9 +69,9 @@
     -   `[ ]` Viết hàm Search nhận Truy vấn (Query).
     -   `[ ]` Lấy ra Top K chunk văn bản & hình ảnh tương đồng nhất kèm Citation.
 
-- `[ ]` **Phase 4: LLM Orchestration & Chat API (Kiến trúc chuẩn ngách Agent)**
--   `[ ]` **LLM Factory Architecture**:
-    -   `[ ]` Xây dựng `llm_provider.py` hỗ trợ multiple providers (OpenAI, Gemini, v.v.). API prompt giống nhau, model khác nhau.
+- `[/]` **Phase 4: LLM Orchestration & Chat API (Kiến trúc chuẩn ngách Agent)**
+-   `[x]` **LLM Factory Architecture**:
+    -   `[x]` Xây dựng `llm_provider.py` hỗ trợ multiple providers (OpenAI, Gemini, v.v.). API prompt giống nhau, model khác nhau.
 -   `[ ]` **LangChain/LlamaIndex Integration**:
     -   `[ ]` Khởi tạo Base Chat API (`/api/chat`). Hỗ trợ nhận Text + Image tiếp nhận JSON structure.
     -   `[ ]` Routing Query: Phân tích xem Request có chứa hình upload trực tiếp không.
