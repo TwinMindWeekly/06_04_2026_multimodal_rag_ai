@@ -548,7 +548,7 @@ data: {"error": "LLM provider failed"}\n\n
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Project selection state — Sidebar cần refactor không?**
    - What we know: Sidebar.jsx hiện không emit selected project. App.jsx không track `selectedProjectId`.
