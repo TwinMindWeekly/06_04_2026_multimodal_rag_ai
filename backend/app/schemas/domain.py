@@ -45,3 +45,26 @@ class DocumentResponse(DocumentBase):
 
     class Config:
         from_attributes = True
+
+
+class SearchResult(BaseModel):
+    """Single search result with chunk content, metadata, and similarity scores."""
+    content: str
+    metadata: dict
+    similarity: float
+    distance: float
+
+
+class SearchResponse(BaseModel):
+    """Response wrapper for search endpoint."""
+    results: list[SearchResult]
+    query: str
+    project_id: int
+    result_count: int
+
+
+class ReindexResponse(BaseModel):
+    """Response for reindex endpoint."""
+    status: str
+    project_id: int
+    document_count: int
