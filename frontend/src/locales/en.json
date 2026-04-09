@@ -22,20 +22,15 @@
     "language_vi": "Vietnamese"
   },
   "chat": {
-    "user_sample": "Can you extract the main policies from the employee handbook related to working remote?",
-    "ai_sample_heading": "Certainly! Based on the **employee_handbook.pdf**, here are the primary guidelines for working remote:",
-    "ai_sample_1": "Ensure you have a stable internet connection of at least 25 Mbps.",
-    "ai_sample_2": "Maintain regular working hours as agreed upon with your manager.",
-    "ai_sample_3": "Use the company VPN for all internal resource access.",
-    "ai_sample_4": "Set your status to 'Available' on Slack during standard hours.",
-    "ai_sample_5": "Attend daily stand-ups and all mandatory sync meetings via Zoom.",
-    "citation": "Source: employee_handbook.pdf, Page 12",
     "placeholder": "Type a message...",
     "attach_file": "Attach file",
     "send": "Send",
     "welcome_title": "How can I assist you today?",
     "welcome_subtitle": "Ask a question about your documents, or prompt a multimodal reasoning task.",
-    "footer_disclaimer": "AI can make mistakes. Verify critical information."
+    "footer_disclaimer": "AI can make mistakes. Verify critical information.",
+    "streaming": "Thinking...",
+    "error_prefix": "Error",
+    "citation_label": "Source: {{filename}}, Page {{page}}"
   },
   "architecture": {
     "view_btn": "System Architecture",

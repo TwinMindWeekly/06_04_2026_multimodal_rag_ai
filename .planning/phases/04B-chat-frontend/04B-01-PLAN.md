@@ -1,316 +1,608 @@
 ---
 phase: 04B-chat-frontend
-plan: "01"
+plan: 01
 type: execute
 wave: 1
-depends_on: []
-files_modified:
-  - frontend/src/api/chatApi.js
-  - frontend/src/App.jsx
-  - frontend/src/components/SettingsPanel.jsx
-  - frontend/src/components/Sidebar.jsx
-  - frontend/src/locales/en.json
-  - frontend/src/locales/vi.json
+depends_on: [04A-chat-backend]
 autonomous: true
-requirements: [UI-01, UI-04]
+requirements: [UI-01, UI-02, UI-03, UI-04]
 
 must_haves:
   truths:
-    - "SSE client utility exports a streamChat function that calls POST /api/chat with fetch and parses ReadableStream"
-    - "App.jsx holds settings state (provider, apiKey, temperature, maxTokens, embeddingProvider, embeddingApiKey) and selectedProjectId"
-    - "SettingsPanel receives settings and onSettingsChange props, renders controlled inputs (value + onChange, not defaultValue)"
-    - "Sidebar receives onSelectProject callback, clicking a project updates selectedProjectId in App.jsx"
-    - "Changing provider in SettingsPanel updates settings.provider in App.jsx state"
-    - "Embedding provider selector exists in SettingsPanel with local/openai/gemini options"
+    - "SSE client uses fetch + ReadableStream (not EventSource)"
+    - "Text tokens stream incrementally into message buffer"
+    - "Citations render from terminal SSE event"
+    - "Settings state (provider, api_key, temperature, max_tokens, project_id) flows into chat request"
   artifacts:
     - path: "frontend/src/api/chatApi.js"
-      provides: "SSE streaming utility with fetch + ReadableStream"
-      exports: ["streamChat"]
-      min_lines: 40
+      provides: "streamChat() function using fetch + ReadableStream for SSE"
+      contains: "ReadableStream"
+    - path: "frontend/src/components/ChatArea.jsx"
+      provides: "Stateful chat component with SSE streaming and citation rendering"
+      contains: "streamChat"
     - path: "frontend/src/App.jsx"
-      provides: "Root component with lifted settings state and selectedProjectId"
+      provides: "Shared settings state passed to SettingsPanel and ChatArea"
       contains: "settings"
-      min_lines: 25
-    - path: "frontend/src/components/SettingsPanel.jsx"
-      provides: "Controlled settings panel with embedding provider selector"
-      contains: "onSettingsChange"
-      min_lines: 50
-    - path: "frontend/src/components/Sidebar.jsx"
-      provides: "Project list with click-to-select and highlight"
-      contains: "onSelectProject"
-  key_links:
-    - from: "frontend/src/api/chatApi.js"
-      to: "POST /api/chat"
-      via: "fetch with ReadableStream"
-      pattern: "fetch.*api.*chat"
-    - from: "frontend/src/App.jsx"
-      to: "frontend/src/components/SettingsPanel.jsx"
-      via: "settings prop and onSettingsChange callback"
-      pattern: "settings.*onSettingsChange"
-    - from: "frontend/src/App.jsx"
-      to: "frontend/src/components/Sidebar.jsx"
-      via: "onSelectProject callback"
-      pattern: "onSelectProject"
+    - path: "frontend/src/locales/en.json"
+      provides: "i18n keys for streaming and error states"
+      contains: "streaming"
 ---
 
 <objective>
-Create the SSE streaming utility and wire App-level state so ChatArea (Plan 02) can send chat requests with correct provider settings and project context.
+Wire the frontend chat UI to the backend SSE streaming endpoint.
 
-Purpose: UI-01 requires fetch + ReadableStream (not EventSource). UI-04 requires settings from SettingsPanel to flow into chat requests. Both need foundational wiring before ChatArea can consume them.
+Purpose: Replace the static mock UI in ChatArea.jsx with a live SSE client that streams LLM responses token by token, renders citations, and sends provider settings from SettingsPanel in each request.
 
-Output: chatApi.js utility, App.jsx with lifted state, controlled SettingsPanel, selectable Sidebar projects.
+Output: Working chat UI that streams responses from POST /api/chat using fetch + ReadableStream, with citation rendering and settings integration.
 </objective>
 
-<execution_context>
-@.claude/get-shit-done/workflows/execute-plan.md
-@.claude/get-shit-done/templates/summary.md
-</execution_context>
-
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
-@.planning/phases/04B-chat-frontend/04B-RESEARCH.md
-@.planning/phases/04A-chat-backend/04A-01-SUMMARY.md
+@frontend/src/App.jsx
+@frontend/src/components/ChatArea.jsx
+@frontend/src/components/SettingsPanel.jsx
+@frontend/src/api/client.js
+@frontend/src/locales/en.json
 
 <interfaces>
-<!-- Key types and contracts the executor needs. Extracted from codebase. -->
+Backend SSE contract (from REQUIREMENTS.md CHAT-04, CHAT-05):
+- Endpoint: POST /api/chat
+- Request body: { message: string, project_id: number|null, provider: string, api_key: string, temperature: number, max_tokens: number }
+- SSE stream format:
+  - Token chunk: data: {"text": "..."}\n\n
+  - Terminal event: data: {"done": true, "citations": [{"filename": "...", "page_number": 0, "chunk_index": 0}]}\n\n
+  - Error event: data: {"error": "..."}\n\n
 
-From backend/app/schemas/domain.py (ChatRequest body shape):
-```python
-class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=10000)
-    project_id: int
-    provider: str = 'openai'
-    api_key: Optional[str] = None
-    temperature: float = 0.7
-    max_tokens: int = 1000
-    top_k: int = 5
-    score_threshold: float = 0.3
-    embedding_provider: str = 'local'
-    embedding_api_key: Optional[str] = None
-```
-
-From backend/app/routers/chat.py (SSE event format):
-```
-Text chunk:    data: {"text": "Hello world"}\n\n
-Terminal:      data: {"done": true, "citations": [{"filename":"doc.pdf","page_number":3,"chunk_index":5,"marker":"[1]"}]}\n\n
-Error:         data: {"error": "LLM provider failed"}\n\n
-```
-
-From frontend/src/api/client.js (API URL pattern):
-```javascript
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-```
-
-From frontend/src/App.jsx (current structure):
-```jsx
-function App() {
-  const [isArchOpen, setIsArchOpen] = useState(false);
-  return (
-    <div className="app-container">
-      <Sidebar onOpenArch={() => setIsArchOpen(true)} />
-      <div className="main-content">
-        <ChatArea />
-        <SettingsPanel />
-      </div>
-      <ArchitectureModal isOpen={isArchOpen} onClose={() => setIsArchOpen(false)} />
-    </div>
-  );
-}
-```
-
-From frontend/src/components/SettingsPanel.jsx (currently uncontrolled):
-```jsx
-<select className="ui-select" defaultValue="gemini">  // PROBLEM: uncontrolled
-<input type="range" ... defaultValue="0.7" />          // PROBLEM: uncontrolled
-```
-
-From frontend/src/components/Sidebar.jsx (no selection callback):
-```jsx
-const Sidebar = ({ onOpenArch }) => { ... }  // Missing onSelectProject, selectedProjectId
-```
+Frontend current state:
+- ChatArea.jsx: static mock messages, no state, no API calls
+- SettingsPanel.jsx: uncontrolled inputs with defaultValue, no state lifted
+- App.jsx: no shared state, just renders components side by side
 </interfaces>
 </context>
 
 <tasks>
 
 <task type="auto">
-  <name>Task 1: Create SSE streaming utility chatApi.js</name>
+  <name>Task 1: Create chatApi.js — SSE streaming client</name>
   <files>frontend/src/api/chatApi.js</files>
-  <read_first>
-    - frontend/src/api/client.js (VITE_API_URL pattern, language interceptor pattern)
-    - backend/app/routers/chat.py (SSE event format — data: JSON\n\n)
-    - backend/app/schemas/domain.py (ChatRequest fields)
-  </read_first>
   <action>
-Create `frontend/src/api/chatApi.js` with a single exported async function:
+    Create `frontend/src/api/chatApi.js` with a `streamChat()` function.
 
-```
-export async function streamChat(request, onChunk, onDone, onError)
-```
+    **Decision (UI-01):** Use fetch + ReadableStream, NOT EventSource. EventSource is GET-only; chat needs POST with JSON body.
 
-Implementation details:
-1. Read `BASE_URL` from `import.meta.env.VITE_API_URL || 'http://localhost:8000/api'` (same pattern as client.js).
-2. Create `AbortController` at function start.
-3. Read language from `localStorage.getItem('i18nextLng') || 'en'` for `Accept-Language` header (mirrors client.js interceptor pattern).
-4. Call `fetch(\`${BASE_URL}/chat\`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Accept-Language': lang}, body: JSON.stringify(request), signal: controller.signal })`.
-5. If `!response.ok`, read `response.text()` and call `onError(errText || \`HTTP ${response.status}\`)`, then return controller.
-6. Get `reader = response.body.getReader()` and `decoder = new TextDecoder()`.
-7. Accumulate into `buffer` string. Loop with `while(true)` calling `reader.read()`. On `done`, break.
-8. Append `decoder.decode(value, { stream: true })` to buffer.
-9. Split buffer by `'\n\n'`. `parts.pop()` stays as incomplete buffer. For each completed part:
-   - Trim, skip if not starting with `'data: '`.
-   - Parse JSON from `line.slice(6)`.
-   - If `payload.error` -> call `onError(payload.error)`.
-   - If `payload.done` -> call `onDone(payload.citations || [])`.
-   - If `payload.text` -> call `onChunk(payload.text)`.
-   - Wrap JSON.parse in try/catch, silently skip malformed events.
-10. Catch block: if `err.name !== 'AbortError'`, call `onError(err.message || 'Network error')`.
-11. Return `controller` so caller can abort.
+    ```javascript
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-CRITICAL constraints:
-- Do NOT import axios — fetch is required for streaming (axios buffers entire response).
-- Do NOT use EventSource — it only supports GET, backend requires POST.
-- Do NOT use `console.log` — silent error handling via callbacks only.
+    /**
+     * Stream a chat message via Server-Sent Events using fetch + ReadableStream.
+     *
+     * @param {object} params
+     * @param {string} params.message - User message text
+     * @param {number|null} params.project_id - Target project for vector search (null = general)
+     * @param {string} params.provider - LLM provider: "gemini" | "openai" | "claude" | "ollama"
+     * @param {string} params.api_key - Provider API key or Ollama base URL
+     * @param {number} params.temperature - Sampling temperature (0–2)
+     * @param {number} params.max_tokens - Max tokens in response
+     * @param {function} params.onToken - Called with each text token string
+     * @param {function} params.onDone - Called with citations array when stream completes
+     * @param {function} params.onError - Called with error message string on failure
+     * @returns {function} abort - Call to cancel the stream
+     */
+    export async function streamChat({
+      message,
+      project_id = null,
+      provider = 'gemini',
+      api_key = '',
+      temperature = 0.7,
+      max_tokens = 2048,
+      onToken,
+      onDone,
+      onError,
+    }) {
+      const controller = new AbortController();
+
+      try {
+        const response = await fetch(`${BASE_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          },
+          body: JSON.stringify({ message, project_id, provider, api_key, temperature, max_tokens }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          onError && onError(`Request failed: ${response.status} ${errText}`);
+          return () => {};
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        const processChunk = async () => {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            // Keep the last (potentially incomplete) line in the buffer
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
+              const jsonStr = line.slice(6).trim();
+              if (!jsonStr) continue;
+
+              try {
+                const event = JSON.parse(jsonStr);
+                if (event.error) {
+                  onError && onError(event.error);
+                } else if (event.done) {
+                  onDone && onDone(event.citations || []);
+                } else if (event.text !== undefined) {
+                  onToken && onToken(event.text);
+                }
+              } catch {
+                // Skip malformed SSE lines
+              }
+            }
+          }
+        };
+
+        processChunk().catch((err) => {
+          if (err.name !== 'AbortError') {
+            onError && onError(err.message || 'Stream read error');
+          }
+        });
+
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          onError && onError(err.message || 'Connection failed');
+        }
+      }
+
+      return () => controller.abort();
+    }
+    ```
   </action>
   <verify>
-    <automated>cd frontend && npx eslint src/api/chatApi.js --no-error-on-unmatched-pattern</automated>
+    Manual: File exists at frontend/src/api/chatApi.js and contains "ReadableStream" and "streamChat"
   </verify>
-  <acceptance_criteria>
-    - grep "export async function streamChat" frontend/src/api/chatApi.js
-    - grep "fetch(" frontend/src/api/chatApi.js
-    - grep "getReader" frontend/src/api/chatApi.js
-    - grep "AbortController" frontend/src/api/chatApi.js
-    - grep "onChunk\|onDone\|onError" frontend/src/api/chatApi.js returns all three
-    - File does NOT contain "EventSource" or "import axios"
-  </acceptance_criteria>
-  <done>chatApi.js exports streamChat function using fetch + ReadableStream with proper SSE parsing, buffer accumulation, and AbortController support. No EventSource, no axios.</done>
+  <done>chatApi.js exists with streamChat() using fetch + ReadableStream. Handles token events, done event with citations, and error events.</done>
 </task>
 
 <task type="auto">
-  <name>Task 2: Lift settings state to App.jsx, convert SettingsPanel to controlled, add project selection to Sidebar</name>
-  <files>
-    frontend/src/App.jsx,
-    frontend/src/components/SettingsPanel.jsx,
-    frontend/src/components/Sidebar.jsx,
-    frontend/src/locales/en.json,
-    frontend/src/locales/vi.json
-  </files>
-  <read_first>
-    - frontend/src/App.jsx (current component tree, state)
-    - frontend/src/components/SettingsPanel.jsx (current uncontrolled inputs)
-    - frontend/src/components/Sidebar.jsx (current project list rendering, props)
-    - frontend/src/locales/en.json (existing i18n keys)
-    - frontend/src/locales/vi.json (existing i18n keys)
-  </read_first>
+  <name>Task 2: Rewrite ChatArea.jsx with streaming state management and citation rendering</name>
+  <files>frontend/src/components/ChatArea.jsx</files>
   <action>
-**A. App.jsx — Lift state:**
+    Rewrite `frontend/src/components/ChatArea.jsx` to:
+    1. Accept `settings` prop from parent (provider, api_key, temperature, max_tokens, project_id)
+    2. Manage messages array state: each message has { id, role: 'user'|'ai', text, citations, isStreaming }
+    3. On send: append user message, append empty AI message with isStreaming=true, call streamChat()
+    4. On token: append token to the last AI message's text (immutable update)
+    5. On done: set isStreaming=false, set citations on last AI message
+    6. On error: set isStreaming=false, set error text on last AI message
+    7. Show empty state only when messages array is empty
+    8. Auto-scroll to bottom after each message update
 
-Add two new state variables to App component:
-```jsx
-const [selectedProjectId, setSelectedProjectId] = useState(null);
-const [settings, setSettings] = useState({
-  provider: 'gemini',
-  apiKey: '',
-  temperature: 0.7,
-  maxTokens: 2048,
-  embeddingProvider: 'local',
-  embeddingApiKey: '',
-});
-```
+    Key patterns:
+    - Use `useRef` for textarea (to clear after send)
+    - Use `useRef` for messages container (to scroll to bottom)
+    - Use `useCallback` for abort ref to cancel in-flight streams on component unmount
+    - Immutable message updates: spread array, spread message object
+    - Citations: render below AI message content when citations array is non-empty
+    - isStreaming: show blinking cursor or "..." indicator
 
-Update component tree to pass props:
-- `<Sidebar onOpenArch={...} selectedProjectId={selectedProjectId} onSelectProject={setSelectedProjectId} />`
-- `<ChatArea selectedProjectId={selectedProjectId} settings={settings} />`
-- `<SettingsPanel settings={settings} onSettingsChange={setSettings} />`
+    Rewrite the component (remove static mock messages, keep the UI structure):
 
-**B. SettingsPanel.jsx — Controlled inputs:**
+    ```jsx
+    import React, { useState, useRef, useEffect, useCallback } from 'react';
+    import { useTranslation } from 'react-i18next';
+    import { streamChat } from '../api/chatApi';
+    import './ChatArea.css';
 
-1. Change function signature: `const SettingsPanel = ({ settings, onSettingsChange }) => {`
-2. Create helper: `const update = (key, value) => onSettingsChange({ ...settings, [key]: value });`  (immutable update per coding-style.md)
-3. Convert ALL `defaultValue` to `value` + `onChange`:
-   - Provider select: `value={settings.provider}` + `onChange={e => update('provider', e.target.value)}`
-   - API key input: `value={settings.apiKey}` + `onChange={e => update('apiKey', e.target.value)}`
-   - Temperature slider: `value={settings.temperature}` + `onChange={e => update('temperature', parseFloat(e.target.value))}` — also update the `<span className="value-label">` to show `{settings.temperature}`
-   - Max tokens slider: `value={settings.maxTokens}` + `onChange={e => update('maxTokens', parseInt(e.target.value, 10))}` — also update the `<span className="value-label">` to show `{settings.maxTokens}`
-4. Remove the "Target Project" selector (project_id comes from Sidebar selection, not Settings — per research Pitfall 5).
-5. Add NEW embedding provider section AFTER the divider:
-   - Label: `{t('settings.embedding_provider')}` with select: options `local` (default, label "Local (all-MiniLM-L6-v2)"), `openai` (label "OpenAI text-embedding-3-small"), `gemini` (label "Google text-embedding-004"). Controlled: `value={settings.embeddingProvider}`, `onChange={e => update('embeddingProvider', e.target.value)}`.
-   - Conditionally show embedding API key input ONLY when `settings.embeddingProvider !== 'local'`: `<input type="password" placeholder="Embedding API Key" value={settings.embeddingApiKey} onChange={e => update('embeddingApiKey', e.target.value)} />`
-6. Remove the "Save Settings" button — state is live via onChange (no save action needed).
+    const ChatArea = ({ settings = {} }) => {
+      const { t } = useTranslation();
+      const [messages, setMessages] = useState([]);
+      const [inputValue, setInputValue] = useState('');
+      const [isStreaming, setIsStreaming] = useState(false);
+      const messagesEndRef = useRef(null);
+      const abortRef = useRef(null);
 
-**C. Sidebar.jsx — Project selection:**
+      const scrollToBottom = useCallback(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, []);
 
-1. Update props: `const Sidebar = ({ onOpenArch, selectedProjectId, onSelectProject }) => {`
-2. For each project in the `.map()`, add `onClick={() => onSelectProject(proj.id)}` and add `className` logic: `className={\`tree-item flex-row align-center\${selectedProjectId === proj.id ? ' active' : ''}\`}`
-3. For the fallback "General Project" item, it already has `active` class — leave as-is (no projects = no selection possible).
+      useEffect(() => {
+        scrollToBottom();
+      }, [messages, scrollToBottom]);
 
-**D. i18n keys — Add new keys:**
+      useEffect(() => {
+        return () => {
+          if (abortRef.current) abortRef.current();
+        };
+      }, []);
 
-Add to BOTH en.json and vi.json under `"settings"` section:
+      const appendToken = useCallback((msgId, token) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === msgId ? { ...msg, text: msg.text + token } : msg
+          )
+        );
+      }, []);
 
-en.json additions:
-```json
-"embedding_provider": "Embedding Provider",
-"embedding_api_key": "Embedding API Key",
-"embedding_local": "Local (all-MiniLM-L6-v2)",
-"embedding_openai": "OpenAI text-embedding-3-small",
-"embedding_gemini": "Google text-embedding-004"
-```
+      const finalizeMessage = useCallback((msgId, citations) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === msgId ? { ...msg, isStreaming: false, citations } : msg
+          )
+        );
+        setIsStreaming(false);
+      }, []);
 
-vi.json additions:
-```json
-"embedding_provider": "Nguon Embedding",
-"embedding_api_key": "Khoa API Embedding",
-"embedding_local": "Cuc bo (all-MiniLM-L6-v2)",
-"embedding_openai": "OpenAI text-embedding-3-small",
-"embedding_gemini": "Google text-embedding-004"
-```
+      const errorMessage = useCallback((msgId, errorText) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === msgId
+              ? { ...msg, isStreaming: false, text: `[${t('chat.error_prefix')}: ${errorText}]`, citations: [] }
+              : msg
+          )
+        );
+        setIsStreaming(false);
+      }, [t]);
 
-Add to BOTH under `"chat"` section:
+      const handleSend = useCallback(async () => {
+        const text = inputValue.trim();
+        if (!text || isStreaming) return;
 
-en.json:
-```json
-"sending": "Sending...",
-"streaming": "AI is thinking...",
-"error_empty": "Please type a message",
-"error_no_project": "Please select a project first",
-"error_network": "Network error. Please try again.",
-"stop_generating": "Stop generating"
-```
+        const userMsgId = `user-${Date.now()}`;
+        const aiMsgId = `ai-${Date.now()}`;
 
-vi.json:
-```json
-"sending": "Dang gui...",
-"streaming": "AI dang suy nghi...",
-"error_empty": "Vui long nhap tin nhan",
-"error_no_project": "Vui long chon du an truoc",
-"error_network": "Loi mang. Vui long thu lai.",
-"stop_generating": "Dung tao"
-```
+        setMessages((prev) => [
+          ...prev,
+          { id: userMsgId, role: 'user', text, citations: [], isStreaming: false },
+          { id: aiMsgId, role: 'ai', text: '', citations: [], isStreaming: true },
+        ]);
+        setInputValue('');
+        setIsStreaming(true);
 
-CRITICAL constraints:
-- Do NOT mutate settings object — always spread: `{ ...settings, [key]: value }`.
-- Do NOT use `console.log` in any modified file.
-- Keep language selector as-is (already controlled via i18n.changeLanguage).
-- SettingsPanel and Sidebar MUST remain functional components with hooks.
+        const abort = await streamChat({
+          message: text,
+          project_id: settings.project_id || null,
+          provider: settings.provider || 'gemini',
+          api_key: settings.api_key || '',
+          temperature: settings.temperature ?? 0.7,
+          max_tokens: settings.max_tokens ?? 2048,
+          onToken: (token) => appendToken(aiMsgId, token),
+          onDone: (citations) => finalizeMessage(aiMsgId, citations),
+          onError: (err) => errorMessage(aiMsgId, err),
+        });
+
+        abortRef.current = abort;
+      }, [inputValue, isStreaming, settings, appendToken, finalizeMessage, errorMessage]);
+
+      const handleKeyDown = useCallback((e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      }, [handleSend]);
+
+      return (
+        <main className="chat-area flex-column">
+          <div className="chat-messages flex-column">
+            {messages.length === 0 && (
+              <div className="empty-state flex-column align-center justify-center">
+                <div className="ai-avatar-large">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#6366f1" />
+                        <stop offset="100%" stopColor="#a855f7" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+                    <path d="M21 16v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                    <path d="M12 22a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2z"></path>
+                    <path d="M4 12v-2"></path>
+                    <path d="M20 12v-2"></path>
+                  </svg>
+                </div>
+                <h3>{t('chat.welcome_title')}</h3>
+                <p>{t('chat.welcome_subtitle')}</p>
+              </div>
+            )}
+
+            {messages.map((msg) => (
+              msg.role === 'user' ? (
+                <div key={msg.id} className="message-wrapper user-message flex-row">
+                  <div className="message-content">{msg.text}</div>
+                </div>
+              ) : (
+                <div key={msg.id} className="message-wrapper ai-message flex-row">
+                  <div className="ai-avatar">AI</div>
+                  <div className="message-content">
+                    <p>
+                      {msg.text}
+                      {msg.isStreaming && <span className="streaming-cursor">|</span>}
+                    </p>
+                    {!msg.isStreaming && msg.citations && msg.citations.length > 0 && (
+                      <div className="citations-container">
+                        {msg.citations.map((cite, i) => (
+                          <div key={i} className="citation flex-row align-center">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            <span>{t('chat.citation_label', { filename: cite.filename, page: cite.page_number })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="chat-input-area">
+            <div className="input-wrapper flex-row align-end">
+              <button className="btn-icon" title={t('chat.attach_file')}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </button>
+              <textarea
+                className="chat-input"
+                placeholder={t('chat.placeholder')}
+                rows="1"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isStreaming}
+              />
+              <button
+                className="btn-icon primary text-color"
+                title={t('chat.send')}
+                onClick={handleSend}
+                disabled={isStreaming || !inputValue.trim()}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </div>
+            <div className="chat-footer-text">{t('chat.footer_disclaimer')}</div>
+          </div>
+        </main>
+      );
+    };
+
+    export default ChatArea;
+    ```
   </action>
   <verify>
-    <automated>cd frontend && npx eslint src/App.jsx src/components/SettingsPanel.jsx src/components/Sidebar.jsx --no-error-on-unmatched-pattern</automated>
+    Manual: ChatArea.jsx contains "streamChat", "settings", "citations", "isStreaming", "ReadableStream" indirectly via chatApi import
   </verify>
-  <acceptance_criteria>
-    - grep "selectedProjectId" frontend/src/App.jsx
-    - grep "settings.*setSettings" frontend/src/App.jsx (both state vars present)
-    - grep "onSettingsChange" frontend/src/components/SettingsPanel.jsx
-    - grep "onSelectProject" frontend/src/components/Sidebar.jsx
-    - grep "value={settings" frontend/src/components/SettingsPanel.jsx (controlled inputs)
-    - SettingsPanel.jsx does NOT contain "defaultValue" for provider/temperature/maxTokens
-    - grep "embeddingProvider" frontend/src/components/SettingsPanel.jsx
-    - grep "embedding_provider" frontend/src/locales/en.json
-    - grep "embedding_provider" frontend/src/locales/vi.json
-  </acceptance_criteria>
-  <done>App.jsx holds settings and selectedProjectId state, passes to children. SettingsPanel uses controlled inputs with embedding provider selector. Sidebar supports project click-to-select with visual highlight. i18n keys added for embedding settings and chat states.</done>
+  <done>ChatArea.jsx is a stateful component that streams tokens from the backend, renders citations, and accepts settings prop.</done>
+</task>
+
+<task type="auto">
+  <name>Task 3: Lift settings state to App.jsx and wire SettingsPanel as controlled component</name>
+  <files>frontend/src/App.jsx, frontend/src/components/SettingsPanel.jsx</files>
+  <action>
+    **Step 1: Update App.jsx** to hold shared `settings` state and pass it down to both SettingsPanel and ChatArea.
+
+    ```jsx
+    import React, { useState } from 'react'
+    import Sidebar from './components/Sidebar'
+    import ChatArea from './components/ChatArea'
+    import SettingsPanel from './components/SettingsPanel'
+    import ArchitectureModal from './components/ArchitectureModal'
+    import './App.css'
+
+    const DEFAULT_SETTINGS = {
+      provider: 'gemini',
+      api_key: '',
+      temperature: 0.7,
+      max_tokens: 2048,
+      project_id: null,
+    };
+
+    function App() {
+      const [isArchOpen, setIsArchOpen] = useState(false);
+      const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+
+      return (
+        <div className="app-container">
+          <Sidebar onOpenArch={() => setIsArchOpen(true)} />
+          <div className="main-content">
+            <ChatArea settings={settings} />
+            <SettingsPanel settings={settings} onSettingsChange={setSettings} />
+          </div>
+
+          <ArchitectureModal
+            isOpen={isArchOpen}
+            onClose={() => setIsArchOpen(false)}
+          />
+        </div>
+      )
+    }
+
+    export default App
+    ```
+
+    **Step 2: Update SettingsPanel.jsx** to be a controlled component receiving `settings` and `onSettingsChange` props. Replace `defaultValue` with `value` on all inputs, and call `onSettingsChange` on each change.
+
+    Key changes:
+    - Temperature: use `value={settings.temperature}` and `onChange` that calls `onSettingsChange({ ...settings, temperature: parseFloat(e.target.value) })`
+    - Max tokens: similar pattern
+    - Provider: `value={settings.provider}` on select
+    - API key: `value={settings.api_key}` on input
+    - Project: `value={settings.project_id ?? 'general'}` on select
+    - Remove the Save Settings button (settings are applied live on each change — no save needed for v1)
+    - The "Save Settings" button can remain but becomes a no-op confirmation, or remove it entirely
+
+    Rewrite SettingsPanel.jsx:
+
+    ```jsx
+    import React from 'react';
+    import { useTranslation } from 'react-i18next';
+    import './SettingsPanel.css';
+
+    const SettingsPanel = ({ settings = {}, onSettingsChange }) => {
+      const { t, i18n } = useTranslation();
+
+      const update = (field, value) => {
+        onSettingsChange && onSettingsChange({ ...settings, [field]: value });
+      };
+
+      return (
+        <aside className="settings-panel flex-column glass-panel">
+          <div className="settings-header">
+            <h3 className="title">{t('settings.title')}</h3>
+          </div>
+
+          <div className="settings-content flex-column">
+
+            <div className="form-group flex-column">
+              <label>{t('settings.provider')}</label>
+              <select
+                className="ui-select"
+                value={settings.provider || 'gemini'}
+                onChange={(e) => update('provider', e.target.value)}
+              >
+                <option value="gemini">Google Gemini 1.5 Pro</option>
+                <option value="openai">OpenAI GPT-4o</option>
+                <option value="claude">Anthropic Claude 3.5</option>
+                <option value="ollama">Local Ollama</option>
+              </select>
+            </div>
+
+            <div className="form-group flex-column">
+              <label>{t('settings.api_key')}</label>
+              <input
+                type="password"
+                placeholder="sk-..."
+                className="ui-input"
+                value={settings.api_key || ''}
+                onChange={(e) => update('api_key', e.target.value)}
+              />
+            </div>
+
+            <div className="form-group flex-column">
+              <div className="flex-row justify-between align-center">
+                <label>{t('settings.temperature')}</label>
+                <span className="value-label">{(settings.temperature ?? 0.7).toFixed(1)}</span>
+              </div>
+              <input
+                type="range"
+                className="ui-slider"
+                min="0"
+                max="2"
+                step="0.1"
+                value={settings.temperature ?? 0.7}
+                onChange={(e) => update('temperature', parseFloat(e.target.value))}
+              />
+            </div>
+
+            <div className="form-group flex-column">
+              <div className="flex-row justify-between align-center">
+                <label>{t('settings.max_tokens')}</label>
+                <span className="value-label">{settings.max_tokens ?? 2048}</span>
+              </div>
+              <input
+                type="range"
+                className="ui-slider"
+                min="256"
+                max="8192"
+                step="256"
+                value={settings.max_tokens ?? 2048}
+                onChange={(e) => update('max_tokens', parseInt(e.target.value, 10))}
+              />
+            </div>
+
+            <div className="divider"></div>
+
+            <div className="form-group flex-column">
+              <div className="flex-row justify-between align-center">
+                <label>{t('settings.target_project')}</label>
+              </div>
+              <select
+                className="ui-select"
+                value={settings.project_id ?? 'general'}
+                onChange={(e) => update('project_id', e.target.value === 'general' ? null : parseInt(e.target.value, 10))}
+              >
+                <option value="general">{t('settings.target_general')}</option>
+              </select>
+              <span className="helper-text">{t('settings.target_hint')}</span>
+            </div>
+
+            <div className="divider"></div>
+
+            <div className="form-group flex-column">
+              <label>{t('settings.language')}</label>
+              <select
+                className="ui-select"
+                value={i18n.language}
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+              >
+                <option value="en">{t('settings.language_en')}</option>
+                <option value="vi">{t('settings.language_vi')}</option>
+              </select>
+            </div>
+
+          </div>
+        </aside>
+      );
+    };
+
+    export default SettingsPanel;
+    ```
+  </action>
+  <verify>
+    Manual: App.jsx contains "settings" state and passes it to both ChatArea and SettingsPanel. SettingsPanel.jsx uses value= on all inputs.
+  </verify>
+  <done>Settings state is lifted to App.jsx. SettingsPanel is a controlled component. ChatArea receives settings and uses them in streamChat() calls.</done>
+</task>
+
+<task type="auto">
+  <name>Task 4: Add i18n keys for streaming states and citation template</name>
+  <files>frontend/src/locales/en.json, frontend/src/locales/vi.json, frontend/src/components/ChatArea.css</files>
+  <action>
+    **Step 1: Update frontend/src/locales/en.json** — add keys used by ChatArea:
+    - `chat.streaming` — "Thinking..."
+    - `chat.error_prefix` — "Error"
+    - `chat.citation_label` — "Source: {{filename}}, Page {{page}}"
+
+    **Step 2: Update frontend/src/locales/vi.json** — add Vietnamese equivalents:
+    - `chat.streaming` — "Đang trả lời..."
+    - `chat.error_prefix` — "Lỗi"
+    - `chat.citation_label` — "Nguồn: {{filename}}, Trang {{page}}"
+
+    **Step 3: Update ChatArea.css** — add streaming cursor animation:
+    ```css
+    .streaming-cursor {
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      color: var(--accent-primary);
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .citations-container {
+      margin-top: var(--spacing-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+    ```
+  </action>
+  <verify>
+    Manual: en.json and vi.json contain "citation_label", "streaming", "error_prefix". ChatArea.css contains "streaming-cursor".
+  </verify>
+  <done>i18n keys for streaming states and citations added. CSS animation for streaming cursor added.</done>
 </task>
 
 </tasks>
@@ -320,35 +612,36 @@ CRITICAL constraints:
 
 | Boundary | Description |
 |----------|-------------|
-| Browser -> Backend API | Chat request body crosses from untrusted client to server |
-| LLM response -> DOM | SSE text rendered in UI (potential XSS if using dangerouslySetInnerHTML) |
+| User Input → Chat Request | Message text and settings sent to backend |
+| Backend SSE → Frontend | Streaming tokens and citations parsed from SSE |
 
 ## STRIDE Threat Register
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-4b-01 | Information Disclosure | chatApi.js | accept | API key sent in request body to localhost — single-user local tool, acceptable per T-4a-02 |
-| T-4b-02 | Tampering | chatApi.js | mitigate | Validate message is non-empty string before calling streamChat (Task 2 in Plan 02 handles this in ChatArea send handler) |
-| T-4b-03 | Denial of Service | SettingsPanel.jsx | mitigate | Temperature clamped 0-2 via slider min/max, maxTokens clamped 256-8192 via slider min/max — prevents extreme values |
+| T-4b-01 | Information Disclosure | api_key in SettingsPanel | accept | API key stored only in React state (in-memory), never persisted to localStorage or sent anywhere except to backend; single-user local tool |
+| T-4b-02 | Tampering | SSE JSON parsing | mitigate | try/catch around JSON.parse in processChunk; malformed events are silently skipped, stream continues |
+| T-4b-03 | Denial of Service | Unaborted streams on unmount | mitigate | useEffect cleanup calls abort() when ChatArea unmounts; AbortController cancels fetch |
 </threat_model>
 
 <verification>
-1. `cd frontend && npx eslint src/ --no-error-on-unmatched-pattern` — zero errors
-2. `grep "streamChat" frontend/src/api/chatApi.js` — function exported
-3. `grep "selectedProjectId" frontend/src/App.jsx` — state exists
-4. `grep "onSettingsChange" frontend/src/components/SettingsPanel.jsx` — prop consumed
-5. `grep "onSelectProject" frontend/src/components/Sidebar.jsx` — prop consumed
-6. `grep "embeddingProvider" frontend/src/components/SettingsPanel.jsx` — embedding selector present
+After all 4 tasks complete:
+1. frontend/src/api/chatApi.js exists and contains "streamChat" and "ReadableStream"
+2. frontend/src/components/ChatArea.jsx contains "streamChat", "settings", "citations", "isStreaming"
+3. frontend/src/App.jsx contains "DEFAULT_SETTINGS" and passes settings to ChatArea and SettingsPanel
+4. frontend/src/components/SettingsPanel.jsx uses "value={settings" (controlled inputs)
+5. frontend/src/locales/en.json contains "citation_label" and "streaming"
+6. frontend/src/components/ChatArea.css contains "streaming-cursor"
 </verification>
 
 <success_criteria>
-- chatApi.js exports streamChat using fetch + ReadableStream (NOT EventSource, NOT axios)
-- App.jsx manages settings state and selectedProjectId, passes as props
-- SettingsPanel is fully controlled (no defaultValue for settings fields)
-- SettingsPanel has embedding provider selector (local/openai/gemini) with conditional API key
-- Sidebar supports click-to-select project with visual active state
-- All new user-facing strings have en.json and vi.json translations
-- ESLint passes on all modified files
+- SSE client uses fetch + ReadableStream (UI-01)
+- Text tokens stream incrementally into message buffer (UI-02)
+- Citations render from terminal SSE event with filename and page number (UI-03)
+- Settings state (provider, api_key, temperature, max_tokens, project_id) flows from SettingsPanel into each chat request (UI-04)
+- No EventSource usage in the codebase
+- No static mock messages in ChatArea (replaced by dynamic state)
+- Settings are controlled (value= not defaultValue=)
 </success_criteria>
 
 <output>
