@@ -38,17 +38,17 @@
 
 Plans:
 - [x] 03A-01-PLAN.md — Fix encoding, test scaffold, absolute SQLite paths, WAL mode, startup probes
-- [ ] 03A-02-PLAN.md — Lazy-load embeddings, ChromaDB path, eager-load fix, upload validation
+- [x] 03A-02-PLAN.md — Lazy-load embeddings, ChromaDB path, eager-load fix, upload validation
 
 **Success criteria:**
-- [ ] Server starts with absolute DB/ChromaDB paths logged to console
-- [ ] WAL mode confirmed via `PRAGMA journal_mode` query
-- [ ] Embedding model NOT loaded until first embedding request
-- [ ] Upload of .exe file returns 400; upload of 200MB file returns 413
-- [ ] `pip install -r requirements.txt` works on fresh venv
-- [ ] Missing poppler/tesseract produces clear warning at startup
+- [x] Server starts with absolute DB/ChromaDB paths logged to console
+- [x] WAL mode confirmed via `PRAGMA journal_mode` query
+- [x] Embedding model NOT loaded until first embedding request
+- [x] Upload of .exe file returns 400; upload of 200MB file returns 413
+- [x] `pip install -r requirements.txt` works on fresh venv
+- [x] Missing poppler/tesseract produces clear warning at startup
 
-**Estimated scope:** 8 requirements, all parallelizable. Touches 6 existing files.
+**Estimated scope:** 8 requirements, all parallelizable. Touches 6 existing files. **COMPLETE.**
 
 ---
 

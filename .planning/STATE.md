@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-04-09T07:56:56.327Z"
+status: Phase complete
+last_updated: "2026-04-09T08:16:10Z"
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State — Multimodal RAG AI
@@ -20,18 +20,18 @@ progress:
 
 ## Current Position
 
-Phase: 03A (infrastructure-fixes) — EXECUTING
-Plan: 2 of 2
+Phase: 03A (infrastructure-fixes) — COMPLETE
+Plan: 2 of 2 (all done)
 
 - **Milestone:** RAG Pipeline + Chat API (v1)
-- **Active phase:** 03A — Plan 01 complete, Plan 02 next
-- **Next action:** Execute 03A-02-PLAN.md
+- **Active phase:** 03A — All plans complete, ready for verification or Phase 3b
+- **Next action:** Verify Phase 3a or begin Phase 3b planning
 
 ## Phase Status
 
 | Phase | Name | Status | Planned | Executed | Verified |
 |-------|------|--------|---------|----------|----------|
-| 3a | Infrastructure Fixes | IN PROGRESS | Yes | 1/2 | No |
+| 3a | Infrastructure Fixes | COMPLETE | Yes | 2/2 | No |
 | 3b | Ingestion Pipeline | NOT STARTED | No | No | No |
 | 3c | Retrieval | NOT STARTED | No | No | No |
 | 4a | Chat Backend | NOT STARTED | No | No | No |
@@ -62,7 +62,12 @@ Plan: 2 of 2
 | 2026-04-09 | Per-project collection in ChromaDB | Isolation without metadata filtering overhead |
 | 2026-04-09 | sqlite:// for test DB on Windows | file::memory: URI has colons invalid in Windows paths |
 | 2026-04-09 | WAL listener on engine instance not class | Prevents cross-engine interference in tests |
-| 2026-04-09 | load_dotenv() before app.core imports | Ensures env vars available during module init |
+| 2026-04-09 | Lazy singleton via global guard, not lru_cache | Simpler to mock in tests |
+| 2026-04-09 | joinedload over separate scalar query | Fewer DB round-trips |
+| 2026-04-09 | Read-before-write for upload size validation | Acceptable for 100MB local tool |
+| 2026-04-09 | Content-Type as secondary check only | Clients can spoof headers |
+| 2026-04-09 | StaticPool for in-memory SQLite tests | Ensures all connections share same DB |
+| 2026-04-09 | DocumentBase.folder_id as Optional[int] | Upload endpoint allows None folder |
 
 ## Blockers
 
