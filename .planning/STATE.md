@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: Ready to execute
+last_updated: "2026-04-09T07:56:56.327Z"
+progress:
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
+---
+
 # Project State — Multimodal RAG AI
 
 **Last updated:** 2026-04-09
@@ -6,15 +20,18 @@
 
 ## Current Position
 
+Phase: 03A (infrastructure-fixes) — EXECUTING
+Plan: 2 of 2
+
 - **Milestone:** RAG Pipeline + Chat API (v1)
-- **Active phase:** None (ready to plan Phase 3a)
-- **Next action:** `/gsd-plan-phase 3a`
+- **Active phase:** 03A — Plan 01 complete, Plan 02 next
+- **Next action:** Execute 03A-02-PLAN.md
 
 ## Phase Status
 
 | Phase | Name | Status | Planned | Executed | Verified |
 |-------|------|--------|---------|----------|----------|
-| 3a | Infrastructure Fixes | NOT STARTED | No | No | No |
+| 3a | Infrastructure Fixes | IN PROGRESS | Yes | 1/2 | No |
 | 3b | Ingestion Pipeline | NOT STARTED | No | No | No |
 | 3c | Retrieval | NOT STARTED | No | No | No |
 | 4a | Chat Backend | NOT STARTED | No | No | No |
@@ -43,6 +60,9 @@
 | 2026-04-09 | LangChain narrow usage only | Splitters + provider adapters; no RetrievalQA/chains |
 | 2026-04-09 | fetch + ReadableStream for SSE | EventSource is GET-only; chat needs POST |
 | 2026-04-09 | Per-project collection in ChromaDB | Isolation without metadata filtering overhead |
+| 2026-04-09 | sqlite:// for test DB on Windows | file::memory: URI has colons invalid in Windows paths |
+| 2026-04-09 | WAL listener on engine instance not class | Prevents cross-engine interference in tests |
+| 2026-04-09 | load_dotenv() before app.core imports | Ensures env vars available during module init |
 
 ## Blockers
 
