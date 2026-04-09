@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 03C
-last_updated: "2026-04-09T16:47:15.236Z"
+status: Phase 04B Planned
+last_updated: "2026-04-09T17:30:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 2
@@ -20,12 +20,12 @@ progress:
 
 ## Current Position
 
-Phase: 03C (retrieval) — EXECUTING
-Plan: 1 of 3
+Phase: 04B (chat-frontend) — PLANNED
+Plan: 0 of 2
 
 - **Milestone:** RAG Pipeline + Chat API (v1)
-- **Active phase:** 03C — 3 plans ready, verified by plan-checker
-- **Next action:** Execute Phase 03C
+- **Active phase:** 04B — 2 plans ready, validated by plan-checker
+- **Next action:** Execute Phase 04B
 
 ## Phase Status
 
@@ -34,8 +34,8 @@ Plan: 1 of 3
 | 3a | Infrastructure Fixes | COMPLETE | Yes | 2/2 | No |
 | 3b | Ingestion Pipeline | EXECUTED | Yes | 3/3 | No |
 | 3c | Retrieval | PLANNED | Yes (3 plans) | No | No |
-| 4a | Chat Backend | NOT STARTED | No | No | No |
-| 4b | Chat Frontend | NOT STARTED | No | No | No |
+| 4a | Chat Backend | PLANNED | Yes (2 plans) | No | No |
+| 4b | Chat Frontend | PLANNED | Yes (2 plans) | No | No |
 | 5 | Validation | NOT STARTED | No | No | No |
 
 ## Planning Artifacts
@@ -69,13 +69,16 @@ Plan: 1 of 3
 | 2026-04-09 | StaticPool for in-memory SQLite tests | Ensures all connections share same DB |
 | 2026-04-09 | DocumentBase.folder_id as Optional[int] | Upload endpoint allows None folder |
 | 2026-04-09 | google-genai SDK instead of google-generativeai | protobuf 6.x compatibility; old SDK needs protobuf<6 |
+| 2026-04-09 | Lift settings state to App.jsx | SettingsPanel uncontrolled (defaultValue) cannot share state with ChatArea |
+| 2026-04-09 | Manual smoke test for frontend (no vitest) | 4 requirements, local tool — vitest scope creep not justified for v1 |
 
 ## Blockers
 
-None currently. Phase 3a can begin immediately.
+None currently. Phase 04B can begin execution after prior phases complete.
 
 ## Notes
 
 - System deps (poppler, tesseract) need manual Windows installation before Phase 3b
 - Config: mode=yolo, granularity=standard, parallelization=true, model_profile=balanced
 - All workflow agents enabled (research, plan_check, verifier)
+- Phase 4b has no new npm dependencies — uses built-in fetch + ReadableStream
