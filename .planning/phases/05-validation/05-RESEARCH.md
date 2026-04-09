@@ -540,7 +540,7 @@ class TestProviderSwitchReindex:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **LLMProviderFactory location**
    - What we know: `chat.py` import từ `app.services.llm_provider`
