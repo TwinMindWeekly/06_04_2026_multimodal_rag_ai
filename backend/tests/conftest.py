@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from app.core.database import Base, get_db
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite:///file::memory:?cache=shared"
+TEST_DATABASE_URL = "sqlite://"
 
 
 @pytest.fixture
