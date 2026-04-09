@@ -27,3 +27,9 @@ Welcome to the AI Agent Continuous Learning Log. Every time a bug is caught and 
 - **Issue**: Calling `/api/documents/upload` directly resulted in a Form Validation Error.
 - **Root Cause**: FastAPI endpoint explicitly required `folder_id: int = Form(...)` with no fallback.
 - **Solution**: Allowed null uploads by changing to `folder_id: int = Form(None)`.
+
+## 5. FastAPI BackgroundTask Database Session Leak
+- **Date**: 09-04-2026
+- **Issue**: Passing `db: Session` from a router endpoint (which uses `Depends(get_db)`) to a BackgroundTask causes a `DetachedInstanceError` or `SessionClosedError` because FastAPI generator tears down the session before the background task finishes.
+- **Root Cause**: FastAPI `yield db` automatically shuts down the DB session once the HTTP Response is returned. Background Tasks run after the response.
+- **Solution**: Do NOT pass the HTTP session to background tasks. Instead, pass the ID (e.g., `document_id`) and explicitly create a local session (`db = SessionLocal()`) and close it inside the background function `finally: db.close()`.
