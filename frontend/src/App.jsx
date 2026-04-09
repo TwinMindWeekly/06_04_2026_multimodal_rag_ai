@@ -21,7 +21,7 @@ function App() {
     <div className="app-container">
       <Sidebar onOpenArch={() => setIsArchOpen(true)} />
       <div className="main-content">
-        <ChatArea settings={settings} />
+        <ChatArea selectedProjectId={settings.project_id} settings={settings} />
         <SettingsPanel settings={settings} onSettingsChange={setSettings} />
       </div>
 
