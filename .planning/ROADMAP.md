@@ -34,6 +34,12 @@
 - INFRA-07: Fix requirements.txt encoding
 - INFRA-08: System dependency startup probe
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03A-01-PLAN.md — Fix encoding, test scaffold, absolute SQLite paths, WAL mode, startup probes
+- [ ] 03A-02-PLAN.md — Lazy-load embeddings, ChromaDB path, eager-load fix, upload validation
+
 **Success criteria:**
 - [ ] Server starts with absolute DB/ChromaDB paths logged to console
 - [ ] WAL mode confirmed via `PRAGMA journal_mode` query
