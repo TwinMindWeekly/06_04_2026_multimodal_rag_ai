@@ -190,12 +190,17 @@ Plans:
 - TEST-02: ChromaDB metadata round-trip test
 - TEST-03: Embedding provider switch re-index test
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 05-01-PLAN.md — E2E upload-to-chat, metadata round-trip, and provider switch validation tests
+
 **Success criteria:**
 - [ ] Automated test: upload PDF → query → receive answer with correct citation
 - [ ] Metadata survives ChromaDB insert/query round-trip
 - [ ] Provider switch triggers re-index, search works with new embeddings
 
-**Estimated scope:** 3 requirements. New: `backend/tests/` directory with pytest.
+**Estimated scope:** 3 requirements. New: `backend/tests/test_e2e_validation.py` with pytest.
 
 **Dependencies:** Phase 4b complete (full stack working).
 
