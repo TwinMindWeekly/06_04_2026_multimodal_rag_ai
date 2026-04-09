@@ -66,3 +66,6 @@ graph TD
 2. Double-click on `start.bat` (or run `.\start.bat` in your terminal).
 3. The script will automatically open two terminal windows, starting both the FastAPI Backend (Port 8000) and the React Frontend (Port 5173).
 4. Access the web interface at [http://localhost:5173](http://localhost:5173).
+
+> **Troubleshooting / Reload:**
+> If the ports hang or you want a fresh reboot without tracking old terminals, simply execute `restart.bat`. It will automatically scan and kill stuck node/python processes attached to port 5173/8000 before launching fresh services.
