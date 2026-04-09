@@ -1,5 +1,26 @@
-import pytest
+import sys
 from unittest.mock import MagicMock
+
+# ---------------------------------------------------------------------------
+# Pre-mock unstructured.partition.auto BEFORE any app module is imported.
+#
+# unstructured.partition.image imports detectron2/torch which causes a
+# segmentation fault on Windows (WSL2) when loaded natively. Since all tests
+# mock `partition` anyway, we replace the module at the sys.modules level so
+# the real C-extension is never loaded.
+#
+# This must be done at conftest import time (module top-level), before pytest
+# collects test modules that transitively import document_parser.py.
+# ---------------------------------------------------------------------------
+if "unstructured.partition.auto" not in sys.modules:
+    _mock_unstructured = MagicMock()
+    _mock_partition_auto = MagicMock()
+    _mock_partition_auto.partition = MagicMock(return_value=[])
+    sys.modules.setdefault("unstructured", _mock_unstructured)
+    sys.modules.setdefault("unstructured.partition", MagicMock())
+    sys.modules.setdefault("unstructured.partition.auto", _mock_partition_auto)
+
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
