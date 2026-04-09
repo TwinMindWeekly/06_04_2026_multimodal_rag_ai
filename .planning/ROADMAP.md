@@ -66,6 +66,13 @@ Plans:
 - CHUNK-02: Chunk metadata schema
 - CHUNK-03: Image summaries chunked as text
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 03B-01-PLAN.md — Schema changes, new dependencies, vector store delete/sanitize capabilities
+- [ ] 03B-02-PLAN.md — ImageProcessorService with Gemini Vision + tenacity retry
+- [ ] 03B-03-PLAN.md — DocumentParserService rewrite with unstructured + chunking + pipeline wiring
+
 **Success criteria:**
 - [ ] Upload a 10-page PDF → chunks appear in ChromaDB with page_number metadata
 - [ ] Upload a PPTX with images → image summaries embedded as text chunks
