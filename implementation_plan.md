@@ -8,8 +8,9 @@ Dự án sẽ được chia làm 4 giai đoạn chính để đảm bảo tiến
 
 **Phase 1: Xây dựng Giao Diện UI/UX Hiện Đại (Mock Data)**
 - Khởi tạo ứng dụng web (Sử dụng Vite + React + Vanilla CSS theo chuẩn thiết kế cao cấp).
+- Cài đặt thư viện i18n (như `react-i18next`) để hỗ trợ đa ngôn ngữ (Tiếng Anh, Tiếng Việt).
 - Thiết kế layout chính (Sidebar rẽ nhánh cây thư mục, Main Chat Area, Right Panel cho Settings/Metadata).
-- Tính năng: Dark mode, Animations mượt mà, Glassmorphism UI.
+- Tính năng: Dark mode, Animations mượt mà, Glassmorphism UI, Switcher Ngôn ngữ (EN/VI).
 - Giao diện Chatbot: Hiển thị hội thoại, hỗ trợ trích dẫn (citation), cho phép upload hình ảnh/file.
 - Giao diện Sidebar: Cây thư mục (Project/Folders/Documents), Upload file.
 - Giao diện Settings: Cấu hình Provider (OpenAI, Gemini, Claude, Local Ollama), các system prompt và model parameters.
@@ -17,6 +18,7 @@ Dự án sẽ được chia làm 4 giai đoạn chính để đảm bảo tiến
 **Phase 2: Xây dựng Backend API & Quản lý Tài liệu**
 - Khởi tạo FastAPI server bằng Python.
 - Viết các API cho việc Upload, lưu trữ file, quản lý Project/Cây thư mục.
+- Cấu hình i18n Backend: Nhận dạng `Accept-Language` header để phản hồi Error messages bằng tiếng Anh/Việt, và tuỳ chỉnh AI System Prompt theo ngôn ngữ tương ứng.
 - Tích hợp Parser cho PDF, Word, Excel, PPTX. Bóc tách nội dung thô.
 
 **Phase 3: Tích hợp RAG (Retrieval-Augmented Generation)**

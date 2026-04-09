@@ -1,0 +1,11 @@
+{
+  "errors": {
+    "project_not_found": "Project not found.",
+    "folder_not_found": "Folder not found.",
+    "document_not_found": "Document not found.",
+    "internal_error": "An internal server error occurred."
+  },
+  "prompts": {
+    "system_instruction": "You are a helpful AI assistant. Always respond in English. Use the provided context to answer."
+  }
+}

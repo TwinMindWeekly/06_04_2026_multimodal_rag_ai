@@ -1,0 +1,115 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.architecture-modal {
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.modal-header {
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-md);
+}
+
+.description {
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.diagram-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: inherit;
+  padding: var(--spacing-lg);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-lg);
+}
+
+.diagram-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.split-row {
+  max-width: 600px;
+  gap: var(--spacing-xl);
+}
+
+.diagram-node {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 2px solid;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 220px;
+  background: var(--bg-surface);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.diagram-node:hover {
+  transform: translateY(-2px);
+}
+
+.diagram-node strong {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.diagram-node span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.sub-node {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--accent-primary);
+}
+
+.ui-node { border-color: #4ade80; }
+.backend-node { border-color: #60a5fa; }
+.parser-node { border-color: #f472b6; }
+.db-node { border-color: #fca5a5; }
+.ai-node { border-color: #a78bfa; }
+
+.diagram-arrow {
+  padding: var(--spacing-md) 0;
+  color: var(--text-muted);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.diagram-branch {
+  width: 100%;
+  max-width: 300px;
+  color: var(--text-muted);
+  font-weight: bold;
+  font-size: 1.5rem;
+  justify-content: space-between;
+  padding: 0 40px;
+  margin-top: -10px;
+  margin-bottom: -10px;
+}

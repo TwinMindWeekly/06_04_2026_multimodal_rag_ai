@@ -1,0 +1,54 @@
+{
+  "sidebar": {
+    "projects_title": "DỰ ÁN",
+    "general_project": "Chung (Mặc định)",
+    "recent_chats": "TRÒ CHUYỆN GẦN ĐÂY",
+    "upload_btn": "Tải tài liệu lên",
+    "chat_history_1": "Cách cài đặt Vector DB...",
+    "chat_history_2": "Mô hình RAG Đa phương thức..."
+  },
+  "settings": {
+    "title": "Cấu hình Mô hình",
+    "provider": "Gốc AI (Provider)",
+    "api_key": "Khoá API (API Key) / URL",
+    "temperature": "Độ sáng tạo (Temp)",
+    "max_tokens": "Giới hạn từ (Tokens)",
+    "target_project": "Dự án Nguồn",
+    "target_general": "Chung (Không ngữ cảnh)",
+    "target_hint": "Quyết định kho vector nào sẽ được truy xuất khi chat.",
+    "save_btn": "Lưu cấu hình",
+    "language": "Ngôn ngữ",
+    "language_en": "Tiếng Anh",
+    "language_vi": "Tiếng Việt"
+  },
+  "chat": {
+    "user_sample": "Bạn có thể trích xuất các chính sách chính từ sổ tay nhân viên liên quan đến làm việc từ xa (remote) không?",
+    "ai_sample_heading": "Chắc chắn rồi! Dựa vào **employee_handbook.pdf**, dưới đây là các quy định về làm việc từ xa:",
+    "ai_sample_1": "Cần đảm bảo kết nối mạng ổn định với tốc độ tối thiểu 25 Mbps.",
+    "ai_sample_2": "Duy trì giờ làm việc cố định theo thoả thuận với quản lý.",
+    "ai_sample_3": "Sử dụng VPN của công ty để truy cập mạng nội bộ.",
+    "ai_sample_4": "Đặt trạng thái 'Sẵn sàng' trên Slack trong giờ hành chính.",
+    "ai_sample_5": "Tham dự đầy đủ các buổi họp sáng đồng bộ qua Zoom.",
+    "citation": "Nguồn tham khảo: employee_handbook.pdf, Trang 12",
+    "placeholder": "Nhập tin nhắn...",
+    "attach_file": "Đính kèm tệp",
+    "send": "Gửi",
+    "welcome_title": "Tôi có thể giúp gì cho bạn hôm nay?",
+    "welcome_subtitle": "Hỏi đáp về tài liệu của bạn, hoặc thực hiện lý luận đa phương thức.",
+    "footer_disclaimer": "AI có thể mắc lỗi. Vui lòng xác minh các thông tin quan trọng."
+  },
+  "architecture": {
+    "view_btn": "Kiến trúc hệ thống",
+    "modal_title": "Sơ đồ Kiến Trúc",
+    "close": "Đóng",
+    "description": "Tổng quan sơ đồ khối về các thành phần luồng dữ liệu của hệ thống RAG Đa phương thức.",
+    "frontend": "Ứng dụng Giao diện",
+    "backend": "API Máy chủ",
+    "parser": "Bộ xử lý tài liệu",
+    "database": "Cơ sở Vector & Dữ liệu",
+    "ai_engine": "Lõi Trí tuệ Nhân tạo",
+    "images_text": "Xuất mảng Văn bản & Ảnh",
+    "metadata_embeds": "Lưu trữ Vector & Siêu dữ liệu",
+    "multimodal_reasoning": "Lý luận và Trả lời Đa phương thức"
+  }
+}

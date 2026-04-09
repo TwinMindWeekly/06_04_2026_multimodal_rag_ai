@@ -1,6 +1,11 @@
-- `[x]` **Phase 1: Web UI & Core UX (Mock Data)**
+- `[/]` **Phase 1: Web UI & Core UX (Mock Data)**
 -   `[x]` Khởi tạo ứng dụng Frontend (Vite + React) tại `frontend/`.
 -   `[x]` Xây dựng Design System (CSS Variables/Tokens, Color Palette cho Dark/Light mode).
+-   `[x]` **Tính năng Đa ngôn ngữ (i18n)**:
+    -   `[x]` Cài đặt `i18next` và `react-i18next`.
+    -   `[x]` Tạo file json ngôn ngữ cho Tiếng Anh (`en.json`) và Tiếng Việt (`vi.json`).
+    -   `[x]` Thêm Nút chuyển đổi ngôn ngữ (EN/VI) trên UI (Settings hoặc Header).
+    -   `[x]` Cập nhật toàn bộ Text tĩnh của Sidebar, Chat Area, Settings sang biến dịch.
 -   `[x]` Xây dựng cấu trúc layout chính: Sidebar trái, Chat Area (giữa), Settings Panel (phải/hoặc popup).
 -   `[x]` Tạo component **Sidebar / Cây thư mục**:
     -   `[x]` Hiển thị danh sách các Projects.
@@ -20,29 +25,52 @@
     -   `[x]` Các slider tuỳ chỉnh Temperature, Max tokens.
 -   `[x]` Mock State / Dummy data: Kết nối các component lại hoạt động độc lập không cần backend.
 
-- `[ ]` **Phase 2: Backend API & Document Parser**
--   `[ ]` Khởi tạo ứng dụng Backend Python (FastAPI).
--   `[ ]` Cài đặt các thư viện cần thiết (`fastapi`, `uvicorn`, `python-multipart`...).
--   `[ ]` Viết module quản lý database (CRUD) cho Project, Folder, File.
--   `[ ]` Viết API upload file và lưu vào thư mục local / S3 mock.
--   `[ ]` Viết Module Parser cho PDF (PyMuPDF / pdfplumber).
--   `[ ]` Viết Module Parser cho DOCX (python-docx).
--   `[ ]` Viết Module Parser cho XLSX, PPTX.
--   `[ ]` Ghép nối bóc tách metadata (tên trang, thời gian tải lên).
+- `[/]` **Phase 2: Backend API (FastAPI) & Database**
+-   `[x]` **Khởi tạo kiến trúc Backend**:
+    -   `[x]` Tạo cấu trúc thư mục (`routers`, `services`, `models`, `core`).
+    -   `[x]` Cài đặt các thư viện (`fastapi`, `uvicorn`, `sqlalchemy`, `python-multipart`).
+-   `[x]` **Database Quan hệ (SQLite + SQLAlchemy)**:
+    -   `[x]` Thiết kế schema bảng `projects` (id, name, created_at).
+    -   `[x]` Thiết kế schema bảng `folders` (id, name, project_id, parent_id).
+    -   `[x]` Thiết kế schema bảng `documents` (id, filename, file_path, folder_id, metadata).
+    -   `[x]` Viết các API CRUD: Create/List/Delete cho Project, Folder, File.
+-   `[x]` **Tính năng Đa ngôn ngữ Backend (i18n)**:
+    -   `[x]` Viết Dependency Middleware cho FastAPI để nhận diện `Accept-Language` header.
+    -   `[x]` Thiết lập từ điển dịch (`en.json`, `vi.json`) cho các Exception/Error Message trả về từ API.
+    -   `[x]` Đính kèm tuỳ chọn ngôn ngữ vào AI Prompt context.
+-   `[x]` **Module Parser Tài liệu (Document Extraction)**:
+    -   `[x]` API Upload file (Lưu nguyên bản file vào thư mục `/uploads`).
+    -   `[x]` Bóc tách Text/Image từ PDF (Unstructured.io).
+    -   `[x]` Bóc tách DOCX (Unstructured.io).
+    -   `[x]` Bóc tách PPTX/XLSX: Trích xuất slide content và hình ảnh biểu đồ.
+    -   `[x]` Đồng bộ hóa việc lưu `Document ID` với file tải lên.
 
-- `[ ]` **Phase 3: Vector Database & RAG Pipeline Core**
--   `[ ]` Cài đặt ChromaDB và thiết lập Vector Store local.
--   `[ ]` Cài đặt module Text Embedding (`BGE-m3` hoặc OpenAI).
--   `[ ]` Xây dựng module Chunking: Chia nhỏ văn bản document (RecursiveCharacterTextSplitter).
--   `[ ]` Viết script để nhúng các chunk vào ChromaDB kèm theo metadata (file_id, project_id).
--   `[ ]` Xây dựng API và module Retrieval: Nhận câu hỏi, chuyển thành vector, query ChromaDB để lấy Top K tài liệu tương đồng.
+- `[ ]` **Phase 3: Multimodal Processing & Vector DB (ChromaDB)**
+-   `[ ]` **Image Summarization Pipeline**:
+    -   `[ ]` Quét các ảnh trích xuất từ tài liệu cấu trúc (PDF/PPTX).
+    -   `[ ]` Chạy Gemini 1.5 Pro Vision: Sinh văn bản (Image Summary) tổng hợp nội dung ảnh.
+-   `[ ]` **Chunking & Text Munging**:
+    -   `[ ]` Phân mảnh văn bản thô (thường) = RecursiveCharacterTextSplitter.
+    -   `[ ]` Phân mảnh nội dung chứa bảng biểu/hệ thống phức tạp.
+-   `[ ]` **Embedding & ChromaDB Setup**:
+    -   `[ ]` Khởi tạo ChromaDB Client (Local persistent).
+    -   `[ ]` Khởi tạo Text Embedding model (OpenAI `text-embedding-3-small` / Ollama).
+    -   `[ ]` Nhúng text chunk và Image Summary text vào ChromaDB. Lưu Document ID và File path vào Vector Metadata.
+-   `[ ]` **Semantic Search (Retrieval Module)**:
+    -   `[ ]` Viết hàm Search nhận Truy vấn (Query).
+    -   `[ ]` Lấy ra Top K chunk văn bản & hình ảnh tương đồng nhất kèm Citation.
 
-- `[ ]` **Phase 4: Multimodal LLM Integration & Orchestration**
--   `[ ]` Khởi tạo ứng dụng Langchain.
--   `[ ]` Tích hợp Router / Agent để phân biệt câu lệnh có ảnh hay không có ảnh.
--   `[ ]` Khơi tạo module Vision bằng Gemini 1.5 Pro: Khi user up ảnh, gửi qua Gemini lấy thông tin rồi mang đi query.
--   `[ ]` Tính toán prompt kết hợp (Context + Question).
--   `[ ]` Cấu hình Generator gọi tới LLMs (dữ liệu model từ DB hoặc params).
--   `[ ]` Áp dụng Streaming response cho FastAPI endpoint.
--   `[ ]` Ghép nối API chat của Frontend và Backend.
--   `[ ]` Kiểm thử toàn bộ hệ thống. Bắt bug và tối ưu tốc độ.
+- `[ ]` **Phase 4: LLM Orchestration & Chat API**
+-   `[ ]` **LangChain/LlamaIndex Integration**:
+    -   `[ ]` Khởi tạo Base Chat API (`/api/chat`). Hỗ trợ nhận Text + Image từ Frontend.
+    -   `[ ]` Routing Query: Phân tích xem Request có chứa hình upload trực tiếp không.
+-   `[ ]` **Prompt Engineering**:
+    -   `[ ]` Xây dựng "Context Augmented Prompt" - đưa Top K kết quả truy xuất vào Context.
+    -   `[ ]` Định tuyến (Forwarding) context metadata (trang số mấy, file nào) để AI tạo mỏ neo Citaton.
+-   `[ ]` **Streaming & Response**:
+    -   `[ ]` Viết module Streaming response sử dụng Server-Sent Events (SSE).
+    -   `[ ]` Frontend Parsing SSE: Hiển thị chữ dần dần theo thời gian thực (Typing effect).
+    -   `[ ]` Trả về mảng Citation object đi kèm mỗi tin nhắn để UI gắn tag tài liệu.
+-   `[ ]` **Cấu hình Model Tùy biến (Provider switch)**:
+    -   `[ ]` Logic load credentials động (Lấy API Key từ request body do user gửi từ SettingsPanel).
+-   `[ ]` Kiểm thử toàn bộ User Flow (Upload -> Xử lý vector -> Chat Text -> Chat Image).

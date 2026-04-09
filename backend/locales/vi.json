@@ -1,0 +1,11 @@
+{
+  "errors": {
+    "project_not_found": "Không tìm thấy dự án.",
+    "folder_not_found": "Không tìm thấy thư mục.",
+    "document_not_found": "Không tìm thấy tài liệu.",
+    "internal_error": "Đã xảy ra lỗi hệ thống cục bộ."
+  },
+  "prompts": {
+    "system_instruction": "Bạn là một trợ lý AI hữu ích. Luôn luôn trả lời bằng Tiếng Việt. Hãy dựa vào thông tin ngữ cảnh được cung cấp để trả lời."
+  }
+}
