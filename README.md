@@ -62,6 +62,7 @@ graph TD
 
 ## Getting Started
 
-1. Navigate to the `frontend` directory.
-2. Run `npm install` to install dependencies.
-3. Run `npm run dev` to start the frontend.
+1. Navigate to the root directory `06_04_2026_multimodal_rag_ai`.
+2. Double-click on `start.bat` (or run `.\start.bat` in your terminal).
+3. The script will automatically open two terminal windows, starting both the FastAPI Backend (Port 8000) and the React Frontend (Port 5173).
+4. Access the web interface at [http://localhost:5173](http://localhost:5173).
