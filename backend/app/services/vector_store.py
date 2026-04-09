@@ -8,6 +8,20 @@ from app.services.embeddings import get_default_embeddings
 
 logger = logging.getLogger(__name__)
 
+
+def _sanitize_metadata(meta: dict) -> dict:
+    """Sanitize metadata for ChromaDB: only str/int/float/bool allowed."""
+    result = {}
+    for k, v in meta.items():
+        if v is None:
+            result[k] = ""
+        elif isinstance(v, (str, int, float, bool)):
+            result[k] = v
+        else:
+            result[k] = str(v)
+    return result
+
+
 # __file__ = backend/app/services/vector_store.py
 # .parent = backend/app/services/
 # .parent.parent = backend/app/
@@ -46,9 +60,19 @@ class VectorStoreService:
         collection.upsert(
             documents=text_chunks,
             embeddings=embeddings,
-            metadatas=metadatas,
+            metadatas=[_sanitize_metadata(m) for m in metadatas],
             ids=ids
         )
+
+    def delete_by_document(self, document_id: int, project_id: int = None) -> None:
+        """Delete all vectors for a given document_id from the collection. Per D-15."""
+        collection_name = self._get_collection_name(project_id)
+        try:
+            collection = self.client.get_collection(name=collection_name)
+            collection.delete(where={"document_id": str(document_id)})
+            logger.info("Deleted vectors for document_id=%d from %s", document_id, collection_name)
+        except Exception as e:
+            logger.debug("No vectors to delete for document_id=%d: %s", document_id, e)
 
     def similarity_search(self, query: str, top_k: int = 4, project_id: int = None):
         collection_name = self._get_collection_name(project_id)
