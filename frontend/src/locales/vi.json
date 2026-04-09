@@ -22,20 +22,15 @@
     "language_vi": "Tiếng Việt"
   },
   "chat": {
-    "user_sample": "Bạn có thể trích xuất các chính sách chính từ sổ tay nhân viên liên quan đến làm việc từ xa (remote) không?",
-    "ai_sample_heading": "Chắc chắn rồi! Dựa vào **employee_handbook.pdf**, dưới đây là các quy định về làm việc từ xa:",
-    "ai_sample_1": "Cần đảm bảo kết nối mạng ổn định với tốc độ tối thiểu 25 Mbps.",
-    "ai_sample_2": "Duy trì giờ làm việc cố định theo thoả thuận với quản lý.",
-    "ai_sample_3": "Sử dụng VPN của công ty để truy cập mạng nội bộ.",
-    "ai_sample_4": "Đặt trạng thái 'Sẵn sàng' trên Slack trong giờ hành chính.",
-    "ai_sample_5": "Tham dự đầy đủ các buổi họp sáng đồng bộ qua Zoom.",
-    "citation": "Nguồn tham khảo: employee_handbook.pdf, Trang 12",
     "placeholder": "Nhập tin nhắn...",
     "attach_file": "Đính kèm tệp",
     "send": "Gửi",
     "welcome_title": "Tôi có thể giúp gì cho bạn hôm nay?",
     "welcome_subtitle": "Hỏi đáp về tài liệu của bạn, hoặc thực hiện lý luận đa phương thức.",
-    "footer_disclaimer": "AI có thể mắc lỗi. Vui lòng xác minh các thông tin quan trọng."
+    "footer_disclaimer": "AI có thể mắc lỗi. Vui lòng xác minh các thông tin quan trọng.",
+    "streaming": "Đang trả lời...",
+    "error_prefix": "Lỗi",
+    "citation_label": "Nguồn: {{filename}}, Trang {{page}}"
   },
   "architecture": {
     "view_btn": "Kiến trúc hệ thống",
