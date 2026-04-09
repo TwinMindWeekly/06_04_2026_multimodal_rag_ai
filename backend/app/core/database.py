@@ -39,6 +39,29 @@ def _set_sqlite_wal_mode(dbapi_connection, connection_record):
         cursor.close()
 
 
+def _migrate_add_status_column(db_engine):
+    """One-time migration: add status column to documents table if missing (per D-13, Pitfall 6)."""
+    import sqlite3 as _sqlite3
+    raw_url = str(db_engine.url).replace("sqlite:///", "")
+    if not raw_url or not os.path.exists(raw_url):
+        return
+    conn = _sqlite3.connect(raw_url)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(documents)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "status" not in columns:
+            cursor.execute("ALTER TABLE documents ADD COLUMN status TEXT DEFAULT 'pending' NOT NULL")
+            conn.commit()
+            logger.info("Migrated: added 'status' column to documents table")
+    except Exception as e:
+        logger.warning("Migration check for status column failed: %s", e)
+    finally:
+        conn.close()
+
+
+_migrate_add_status_column(engine)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

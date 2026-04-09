@@ -33,6 +33,7 @@ class DocumentBase(BaseModel):
     filename: str
     folder_id: Optional[int] = None
     metadata_json: Optional[str] = None
+    status: Optional[str] = None
 
 class DocumentCreate(DocumentBase):
     file_path: str
@@ -40,6 +41,7 @@ class DocumentCreate(DocumentBase):
 class DocumentResponse(DocumentBase):
     id: int
     uploaded_at: datetime
-    
+    status: Optional[str] = None
+
     class Config:
         from_attributes = True

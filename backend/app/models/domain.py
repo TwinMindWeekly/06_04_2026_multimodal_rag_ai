@@ -34,5 +34,6 @@ class Document(Base):
     folder_id = Column(Integer, ForeignKey("folders.id"))
     metadata_json = Column(String, nullable=True) # Lưu json metadata dưới dạng string
     uploaded_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="pending", nullable=False)
 
     folder = relationship("Folder", back_populates="documents")
