@@ -45,6 +45,12 @@
     -   `[x]` Bóc tách PPTX/XLSX: Trích xuất slide content và hình ảnh biểu đồ.
     -   `[x]` Đồng bộ hóa việc lưu `Document ID` với file tải lên.
 
+- `[ ]` **Phase 2.5: Tích hợp Frontend & Backend (API Wiring)**
+    -   `[ ]` Tạo thư mục `frontend/src/api/` cấu hình `axios` instance với Base URL.
+    -   `[ ]` Làm mịn chức năng "Tải tài liệu lên": Gọi API `/upload`, hiển thị thanh tiến trình (Progress) hoặc trạng thái tải.
+    -   `[ ]` Quản lý danh sách Cây thư mục: Fetch dữ liệu Projects/Folders/Documents thực tế từ Server đổ vào Sidebar.
+    -   `[ ]` Làm mịn chức năng xử lý lỗi: Bắt Exception 404/500 từ Backend và thông báo ra Toast/Alert trên giao diện.
+
 - `[ ]` **Phase 3: Multimodal Processing & Vector DB (ChromaDB)**
 -   `[ ]` **Image Summarization Pipeline**:
     -   `[ ]` Quét các ảnh trích xuất từ tài liệu cấu trúc (PDF/PPTX).

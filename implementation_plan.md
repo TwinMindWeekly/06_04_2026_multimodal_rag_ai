@@ -21,6 +21,12 @@ Dự án sẽ được chia làm 4 giai đoạn chính để đảm bảo tiến
 - Cấu hình i18n Backend: Nhận dạng `Accept-Language` header để phản hồi Error messages bằng tiếng Anh/Việt, và tuỳ chỉnh AI System Prompt theo ngôn ngữ tương ứng.
 - Tích hợp Parser cho PDF, Word, Excel, PPTX. Bóc tách nội dung thô.
 
+**Phase 2.5: Tích hợp Giao diện & Máy chủ (API Integration)**
+- Cài đặt `axios` bên trong Frontend để thiết lập Base URL (trỏ về `http://localhost:8000/api`).
+- Tích hợp trạng thái (State Management) trong React để tải và vĩnh viễn hóa danh sách Project, Folder, File thực tế từ CSDL SQLite.
+- Gắn Logic Upload thực tế cho nút "Tải tài liệu lên" ở UI để gửi file về Endpoint `/api/documents/upload` của Backend.
+- Xử lý các thông báo thành công / lỗi dựa vào hệ thống i18n Backend.
+
 **Phase 3: Tích hợp RAG (Retrieval-Augmented Generation)**
 - Tích hợp ChromaDB.
 - Khởi tạo mô hình Embedding (Ollama/BGE-m3 hoặc OpenAI text-embedding-3-small).
