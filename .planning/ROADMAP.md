@@ -134,6 +134,12 @@ Plans:
 - CHAT-06: Error events mid-stream
 - CHAT-07: Citation metadata forwarding
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04A-01-PLAN.md — Install LLM deps, ChatRequest/CitationItem schemas, LLMProviderFactory streaming, i18n keys, test scaffolds
+- [ ] 04A-02-PLAN.md — RAG chain service (context builder + prompt), chat router SSE streaming, mount, integration tests
+
 **Success criteria:**
 - [ ] `curl -N -X POST /api/chat` returns streamed SSE events
 - [ ] Response text references content from uploaded documents
@@ -141,7 +147,7 @@ Plans:
 - [ ] Mid-stream LLM error produces error SSE event (not silent disconnect)
 - [ ] Works with OpenAI, Gemini, Claude, and Ollama providers
 
-**Estimated scope:** 7 requirements. New: `rag_chain.py`, `chat_service.py`, `chat.py` router.
+**Estimated scope:** 7 requirements. New: `rag_chain.py`, `chat.py` router. Extend: `llm_provider.py`, `domain.py`.
 
 **Dependencies:** Phase 3c complete (search endpoint working).
 
