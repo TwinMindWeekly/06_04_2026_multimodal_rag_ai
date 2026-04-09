@@ -101,6 +101,13 @@ Plans:
 - SEARCH-02: Score threshold filtering
 - SEARCH-03: MMR/deduplication
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 03C-01-PLAN.md — Install deps, extend EmbeddingFactory with api_key + _GeminiEmbeddings, fix conftest
+- [ ] 03C-02-PLAN.md — Collection metadata, provider mismatch check, write lock, MMR search
+- [ ] 03C-03-PLAN.md — Search router + reindex endpoint + mount + integration tests
+
 **Success criteria:**
 - [ ] Search endpoint returns Top-5 chunks with distances and metadata
 - [ ] Low-similarity chunks filtered out
