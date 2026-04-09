@@ -1,0 +1,48 @@
+- `[x]` **Phase 1: Web UI & Core UX (Mock Data)**
+-   `[x]` Khởi tạo ứng dụng Frontend (Vite + React) tại `frontend/`.
+-   `[x]` Xây dựng Design System (CSS Variables/Tokens, Color Palette cho Dark/Light mode).
+-   `[x]` Xây dựng cấu trúc layout chính: Sidebar trái, Chat Area (giữa), Settings Panel (phải/hoặc popup).
+-   `[x]` Tạo component **Sidebar / Cây thư mục**:
+    -   `[x]` Hiển thị danh sách các Projects.
+    -   `[x]` Cây thư mục lồng nhau (Folders).
+    -   `[x]` Liệt kê các tài liệu (PDF, Docs) bên trong thư mục.
+    -   `[x]` Nút UI / Modal tạo Project/Folder mới.
+    -   `[x]` Upload button / Drag & Drop zone UI.
+-   `[x]` Tạo component **Chat Area**:
+    -   `[x]` Giao diện danh sách tin nhắn (User Message, AI Message).
+    -   `[x]` Giao diện Citation (Nguồn tham khảo) đính kèm dưới tin nhắn của AI.
+    -   `[x]` Animation khi AI đang gõ (typing effect).
+    -   `[x]` Chat Input: Tự động đổi chiều cao (auto-resize textarea).
+    -   `[x]` Chat Input: Nút attach file/image.
+-   `[x]` Tạo component **Provider Settings**:
+    -   `[x]` Dropdown chọn Provider: GPT, Gemini, Claude, Custom Ollama.
+    -   `[x]` Form nhập Base URL (nếu dùng Custom) và API Key.
+    -   `[x]` Các slider tuỳ chỉnh Temperature, Max tokens.
+-   `[x]` Mock State / Dummy data: Kết nối các component lại hoạt động độc lập không cần backend.
+
+- `[ ]` **Phase 2: Backend API & Document Parser**
+-   `[ ]` Khởi tạo ứng dụng Backend Python (FastAPI).
+-   `[ ]` Cài đặt các thư viện cần thiết (`fastapi`, `uvicorn`, `python-multipart`...).
+-   `[ ]` Viết module quản lý database (CRUD) cho Project, Folder, File.
+-   `[ ]` Viết API upload file và lưu vào thư mục local / S3 mock.
+-   `[ ]` Viết Module Parser cho PDF (PyMuPDF / pdfplumber).
+-   `[ ]` Viết Module Parser cho DOCX (python-docx).
+-   `[ ]` Viết Module Parser cho XLSX, PPTX.
+-   `[ ]` Ghép nối bóc tách metadata (tên trang, thời gian tải lên).
+
+- `[ ]` **Phase 3: Vector Database & RAG Pipeline Core**
+-   `[ ]` Cài đặt ChromaDB và thiết lập Vector Store local.
+-   `[ ]` Cài đặt module Text Embedding (`BGE-m3` hoặc OpenAI).
+-   `[ ]` Xây dựng module Chunking: Chia nhỏ văn bản document (RecursiveCharacterTextSplitter).
+-   `[ ]` Viết script để nhúng các chunk vào ChromaDB kèm theo metadata (file_id, project_id).
+-   `[ ]` Xây dựng API và module Retrieval: Nhận câu hỏi, chuyển thành vector, query ChromaDB để lấy Top K tài liệu tương đồng.
+
+- `[ ]` **Phase 4: Multimodal LLM Integration & Orchestration**
+-   `[ ]` Khởi tạo ứng dụng Langchain.
+-   `[ ]` Tích hợp Router / Agent để phân biệt câu lệnh có ảnh hay không có ảnh.
+-   `[ ]` Khơi tạo module Vision bằng Gemini 1.5 Pro: Khi user up ảnh, gửi qua Gemini lấy thông tin rồi mang đi query.
+-   `[ ]` Tính toán prompt kết hợp (Context + Question).
+-   `[ ]` Cấu hình Generator gọi tới LLMs (dữ liệu model từ DB hoặc params).
+-   `[ ]` Áp dụng Streaming response cho FastAPI endpoint.
+-   `[ ]` Ghép nối API chat của Frontend và Backend.
+-   `[ ]` Kiểm thử toàn bộ hệ thống. Bắt bug và tối ưu tốc độ.

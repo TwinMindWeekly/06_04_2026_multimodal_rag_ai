@@ -1,0 +1,16 @@
+/* App specific styles moved to component scopes where possible. */
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-base);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  min-width: 0; /* Important for preventing flex children from overflowing */
+  height: 100%;
+}
