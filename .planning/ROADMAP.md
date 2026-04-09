@@ -163,13 +163,19 @@ Plans:
 - UI-03: Citation rendering from terminal event
 - UI-04: Dynamic provider/credential loading from Settings
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04B-01-PLAN.md — SSE streaming utility (chatApi.js), App.jsx state lifting, controlled SettingsPanel, Sidebar project selection
+- [ ] 04B-02-PLAN.md — ChatArea.jsx rewrite with SSE streaming, message rendering, citations, abort support
+
 **Success criteria:**
 - [ ] User sees text appear word-by-word in ChatArea
 - [ ] Citations displayed below response with filename and page number
 - [ ] Provider selection in SettingsPanel is used for chat requests
 - [ ] API key from SettingsPanel is passed in request body
 
-**Estimated scope:** 4 requirements. Modifies: `ChatArea.jsx`, `SettingsPanel.jsx`. New: SSE client utility.
+**Estimated scope:** 4 requirements. Modifies: `ChatArea.jsx`, `SettingsPanel.jsx`, `App.jsx`, `Sidebar.jsx`. New: `chatApi.js`.
 
 **Dependencies:** Phase 4a complete (chat API responding).
 
