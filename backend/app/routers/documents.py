@@ -18,16 +18,17 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    folder_id: int = Form(...),
+    folder_id: int = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     lang: str = Depends(get_language),
     background_tasks: BackgroundTasks = BackgroundTasks()
 ):
-    # Check if folder exists
-    db_folder = db.query(Folder).filter(Folder.id == folder_id).first()
-    if not db_folder:
-        raise HTTPException(status_code=404, detail=t("errors.folder_not_found", lang))
+    # Check if folder exists if provided
+    if folder_id is not None:
+        db_folder = db.query(Folder).filter(Folder.id == folder_id).first()
+        if not db_folder:
+            raise HTTPException(status_code=404, detail=t("errors.folder_not_found", lang))
 
     # Generate unique filename to avoid collisions
     file_ext = os.path.splitext(file.filename)[1]
