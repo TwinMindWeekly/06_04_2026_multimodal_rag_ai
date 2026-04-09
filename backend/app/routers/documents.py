@@ -58,7 +58,7 @@ async def upload_document(
     db.commit()
     db.refresh(db_document)
     
-    background_tasks.add_task(process_and_update_document, db_document.id, db)
+    background_tasks.add_task(process_and_update_document, db_document.id)
 
     return db_document
 

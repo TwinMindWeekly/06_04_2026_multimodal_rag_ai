@@ -49,9 +49,12 @@
     -   `[ ]` Tạo thư mục `frontend/src/api/` cấu hình `axios` instance với Base URL.
     -   `[ ]` Làm mịn chức năng "Tải tài liệu lên": Gọi API `/upload`, hiển thị thanh tiến trình (Progress) hoặc trạng thái tải.
     -   `[ ]` Quản lý danh sách Cây thư mục: Fetch dữ liệu Projects/Folders/Documents thực tế từ Server đổ vào Sidebar.
-    -   `[ ]` Làm mịn chức năng xử lý lỗi: Bắt Exception 404/500 từ Backend và thông báo ra Toast/Alert trên giao diện.
+    -   `[x]` Bác Exception 404/500 từ Backend và thông báo ra Toast/Alert trên giao diện.
 
-- `[ ]` **Phase 3: Multimodal Processing & Vector DB (ChromaDB)**
+- `[/]` **Phase 3: Tích hợp RAG (Retrieval-Augmented Generation) & Vector DB**
+    -   `[ ]` Nhúng ChromaDB: Tạo `vector_store.py` hỗ trợ Multi-Collections theo Project ID.
+    -   `[ ]` Abstract Embedding Factory: Tạo `embeddings.py` hỗ trợ `sentence-transformers` (miễn phí) thông qua interface chung để các Prompts và Logic dùng chuẩn 1 luồng.
+    -   `[ ]` Data Ingestion Pipeline: Cập nhật hàm xử lý background task trong `documents.py` để sau khi tách văn bản, nhúng vector vào ChromaDB.
 -   `[ ]` **Image Summarization Pipeline**:
     -   `[ ]` Quét các ảnh trích xuất từ tài liệu cấu trúc (PDF/PPTX).
     -   `[ ]` Chạy Gemini 1.5 Pro Vision: Sinh văn bản (Image Summary) tổng hợp nội dung ảnh.
@@ -66,9 +69,11 @@
     -   `[ ]` Viết hàm Search nhận Truy vấn (Query).
     -   `[ ]` Lấy ra Top K chunk văn bản & hình ảnh tương đồng nhất kèm Citation.
 
-- `[ ]` **Phase 4: LLM Orchestration & Chat API**
+- `[ ]` **Phase 4: LLM Orchestration & Chat API (Kiến trúc chuẩn ngách Agent)**
+-   `[ ]` **LLM Factory Architecture**:
+    -   `[ ]` Xây dựng `llm_provider.py` hỗ trợ multiple providers (OpenAI, Gemini, v.v.). API prompt giống nhau, model khác nhau.
 -   `[ ]` **LangChain/LlamaIndex Integration**:
-    -   `[ ]` Khởi tạo Base Chat API (`/api/chat`). Hỗ trợ nhận Text + Image từ Frontend.
+    -   `[ ]` Khởi tạo Base Chat API (`/api/chat`). Hỗ trợ nhận Text + Image tiếp nhận JSON structure.
     -   `[ ]` Routing Query: Phân tích xem Request có chứa hình upload trực tiếp không.
 -   `[ ]` **Prompt Engineering**:
     -   `[ ]` Xây dựng "Context Augmented Prompt" - đưa Top K kết quả truy xuất vào Context.

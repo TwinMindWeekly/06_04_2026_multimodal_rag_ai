@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 # from unstructured.chunking.title import chunk_by_title
 
 from app.models.domain import Document
+from app.services.vector_store import vector_store
 
 class DocumentParserService:
     def __init__(self, extract_images: bool = True):
@@ -49,16 +50,20 @@ class DocumentParserService:
             }
         }
 
-def process_and_update_document(document_id: int, db: Session):
+from app.core.database import SessionLocal
+
+def process_and_update_document(document_id: int):
     """
     Background task to parse constraints immediately after upload.
     """
-    db_document = db.query(Document).filter(Document.id == document_id).first()
-    if not db_document:
-        return
-        
-    parser = DocumentParserService(extract_images=True)
-    result = parser.parse_document(db_document.file_path, document_id)
+    db = SessionLocal()
+    try:
+        db_document = db.query(Document).filter(Document.id == document_id).first()
+        if not db_document:
+            return
+            
+        parser = DocumentParserService(extract_images=True)
+        result = parser.parse_document(db_document.file_path, document_id)
     
     # Update document metadata
     current_metadata = json.loads(db_document.metadata_json) if db_document.metadata_json else {}
@@ -67,4 +72,24 @@ def process_and_update_document(document_id: int, db: Session):
     
     db.commit()
     
-    return result
+    # Ingest text chunks into Vector DB
+    if result.get("text_chunks"):
+        metadatas = []
+        for i, chunk in enumerate(result["text_chunks"]):
+            metadatas.append({
+                "document_id": document_id,
+                "project_id": db_document.folder.project_id if db_document.folder else "none",
+                "filename": db_document.filename,
+                "chunk_index": i
+            })
+            
+        proj_id = db_document.folder.project_id if db_document.folder else None
+        vector_store.insert_documents(
+            text_chunks=result["text_chunks"],
+            metadatas=metadatas,
+            project_id=proj_id
+        )
+        
+        return result
+    finally:
+        db.close()
