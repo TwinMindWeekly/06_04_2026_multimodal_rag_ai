@@ -5,7 +5,11 @@
     "document_not_found": "Không tìm thấy tài liệu.",
     "internal_error": "Đã xảy ra lỗi hệ thống cục bộ.",
     "invalid_file_type": "Loại tệp không hợp lệ. Các loại cho phép: PDF, DOCX, PPTX, XLSX.",
-    "file_too_large": "Tệp quá lớn. Kích thước tối đa là 100MB."
+    "file_too_large": "Tệp quá lớn. Kích thước tối đa là 100MB.",
+    "chat_message_required": "Tin nhan khong duoc de trong.",
+    "chat_provider_error": "Khong the khoi tao nha cung cap LLM.",
+    "chat_embedding_error": "Khong the khoi tao nha cung cap embedding.",
+    "chat_stream_error": "Da xay ra loi trong qua trinh tao phan hoi."
   },
   "prompts": {
     "system_instruction": "Bạn là một trợ lý AI hữu ích. Luôn luôn trả lời bằng Tiếng Việt. Hãy dựa vào thông tin ngữ cảnh được cung cấp để trả lời."
