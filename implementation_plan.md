@@ -1,6 +1,6 @@
 # Phân Tích & Kế Hoạch Triển Khai: Hệ Thống AI RAG Đa Phương Thức
 
-Dựa vào tài liệu `project_scope_and_tech.md` và các yêu cầu từ bạn (có kinh nghiệm Odoo dev 3 năm với các model provider GPT/Gemini/Claude/Ollama), dưới đây là kế hoạch kiến trúc và triển khai dự án.
+Dựa vào tài liệu `project_scope_and_tech.md` và các yêu cầu từ bạn, dưới đây là kế hoạch kiến trúc và triển khai dự án RAG đa phương thức tổng quát.
 
 ## Kế hoạch tổng thể (Master Plan)
 

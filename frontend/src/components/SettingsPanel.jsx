@@ -47,9 +47,8 @@ const SettingsPanel = () => {
           <div className="flex-row justify-between align-center">
             <label>Target Project</label>
           </div>
-          <select className="ui-select" defaultValue="odoo">
-            <option value="odoo">Odoo Knowledge Base</option>
-            <option value="general">General (No Context)</option>
+          <select className="ui-select" defaultValue="general">
+            <option value="general">General Project Framework</option>
           </select>
           <span className="helper-text">Changes which Vector DB is queried during chat.</span>
         </div>

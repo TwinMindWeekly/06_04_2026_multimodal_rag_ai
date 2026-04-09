@@ -30,7 +30,7 @@ const ChatArea = () => {
         {/* Example User Message */}
         <div className="message-wrapper user-message flex-row">
             <div className="message-content">
-              Can you extract the main points from the Odoo dev guide related to creating a new module?
+              Can you extract the main policies from the employee handbook related to working remote?
             </div>
         </div>
 
@@ -38,17 +38,17 @@ const ChatArea = () => {
         <div className="message-wrapper ai-message flex-row">
           <div className="ai-avatar">AI</div>
           <div className="message-content">
-            <p>Certainly! Based on the <strong>odoo_dev_guide.pdf</strong>, here are the main steps to create a new Odoo module:</p>
+            <p>Certainly! Based on the <strong>employee_handbook.pdf</strong>, here are the primary guidelines for working remote:</p>
             <ol>
-              <li>Create a new directory inside your <code>addons</code> path with your module name.</li>
-              <li>Add an <code>__manifest__.py</code> file to declare your module, version, and dependencies.</li>
-              <li>Add an <code>__init__.py</code> file.</li>
-              <li>Create <code>models/</code> directory and define your Python models.</li>
-              <li>Create <code>views/</code> directory and define XML views (Form, Tree, Kanban).</li>
+              <li>Ensure you have a stable internet connection of at least 25 Mbps.</li>
+              <li>Maintain regular working hours as agreed upon with your manager.</li>
+              <li>Use the company VPN for all internal resource access.</li>
+              <li>Set your status to 'Available' on Slack during standard hours.</li>
+              <li>Attend daily stand-ups and all mandatory sync meetings via Zoom.</li>
             </ol>
             <div className="citation flex-row align-center">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-              <span>Source: odoo_dev_guide.pdf, Page 12</span>
+              <span>Source: employee_handbook.pdf, Page 12</span>
             </div>
           </div>
         </div>
