@@ -16,12 +16,8 @@ import logging
 import os
 from pathlib import Path
 
-import warnings
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", FutureWarning)
-    import google.generativeai as genai
-
+from google import genai
+from google.genai import types
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
@@ -38,14 +34,6 @@ class ImageProcessorService:
 
         Returns summary text on success, placeholder string on any failure.
         API key is validated at call time, not at startup (per D-06, D-07).
-
-        Args:
-            image_path: Absolute path to the image file on disk.
-            filename: Human-readable filename used in placeholder messages.
-
-        Returns:
-            Summary text from Gemini, or "[Image: unable to process - {filename}]"
-            on missing key or Gemini failure (per D-07, T-3b-03, T-3b-04).
         """
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
@@ -53,16 +41,12 @@ class ImageProcessorService:
             logger.warning("GOOGLE_API_KEY not set — using placeholder for %s", filename)
             return PLACEHOLDER_TEMPLATE.format(filename=filename)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            genai.configure(api_key=api_key)
+        return self._summarize_with_retry(image_path, filename, api_key)
 
-        return self._summarize_with_retry(image_path, filename)
-
-    def _summarize_with_retry(self, image_path: str, filename: str) -> str:
+    def _summarize_with_retry(self, image_path: str, filename: str, api_key: str) -> str:
         """Attempt Gemini call with retries; return placeholder on final failure."""
         try:
-            return self._call_gemini(image_path)
+            return self._call_gemini(image_path, api_key)
         except Exception as exc:
             # Log the error detail but NOT the api_key (T-3b-03)
             logger.warning(
@@ -77,24 +61,15 @@ class ImageProcessorService:
         wait=wait_exponential(multiplier=1, min=2, max=8),
         reraise=True,
     )
-    def _call_gemini(self, image_path: str) -> str:
+    def _call_gemini(self, image_path: str, api_key: str) -> str:
         """
         Call Gemini Vision API with inline image bytes (not Files API).
 
         Decorated with tenacity retry: up to 3 attempts with exponential backoff
         (2s, 4s, 8s). reraise=True ensures the final exception propagates to
         _summarize_with_retry which converts it to a placeholder (T-3b-04).
-
-        Args:
-            image_path: Path to image file; bytes are read inline per D-08.
-
-        Returns:
-            Summary text from Gemini response.
-
-        Raises:
-            Exception: Any Gemini API error (re-raised after all retries exhausted).
         """
-        model = genai.GenerativeModel("gemini-1.5-pro-latest")
+        client = genai.Client(api_key=api_key)
         image_bytes = Path(image_path).read_bytes()
 
         # Determine MIME type from file extension (unstructured typically exports PNG)
@@ -108,11 +83,12 @@ class ImageProcessorService:
         }
         mime_type = mime_map.get(ext, "image/png")
 
-        response = model.generate_content(
-            [
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[
                 "Describe this image concisely for use in a document search system. "
                 "Focus on key visual elements, text visible in the image, and subject matter.",
-                {"mime_type": mime_type, "data": image_bytes},
-            ]
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+            ],
         )
         return response.text

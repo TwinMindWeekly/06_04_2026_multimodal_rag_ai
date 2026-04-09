@@ -46,9 +46,14 @@ def test_delete_by_document_no_collection_no_error():
     """delete_by_document should not raise if the collection does not exist."""
     from app.services.vector_store import VectorStoreService
     import tempfile
-    with tempfile.TemporaryDirectory() as tmpdir:
+    tmpdir = tempfile.mkdtemp()
+    try:
         from chromadb import PersistentClient
         svc = VectorStoreService.__new__(VectorStoreService)
         svc.client = PersistentClient(path=tmpdir)
         # Should not raise — collection doesn't exist
         svc.delete_by_document(document_id=999, project_id=1)
+        del svc.client  # release sqlite file lock before cleanup
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir, ignore_errors=True)

@@ -9,8 +9,7 @@ Covers:
 - Retry count: fails twice, succeeds on third call
 """
 import logging
-from unittest.mock import MagicMock, patch, call
-import warnings
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -26,6 +25,16 @@ def _make_mock_response(text: str) -> MagicMock:
     return response
 
 
+def _make_mock_client(mock_response=None, side_effect=None) -> MagicMock:
+    """Build a mock genai.Client with models.generate_content configured."""
+    client = MagicMock()
+    if side_effect is not None:
+        client.models.generate_content.side_effect = side_effect
+    elif mock_response is not None:
+        client.models.generate_content.return_value = mock_response
+    return client
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -36,21 +45,16 @@ class TestImageProcessorService:
         """Mock Gemini to return known text; assert summarize_image returns it."""
         monkeypatch.setenv("GOOGLE_API_KEY", "fake-key-for-test")
 
-        # Create a dummy image file so Path.read_bytes() works
         image_file = tmp_path / "chart.png"
-        image_file.write_bytes(b"\x89PNG\r\n\x1a\n")  # minimal PNG header
+        image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
 
         mock_response = _make_mock_response("A chart showing revenue growth")
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
+        mock_client = _make_mock_client(mock_response=mock_response)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            with patch("google.generativeai.configure"), \
-                 patch("google.generativeai.GenerativeModel", return_value=mock_model):
-                from app.services.image_processor import ImageProcessorService
-                svc = ImageProcessorService()
-                result = svc.summarize_image(str(image_file), "chart.png")
+        with patch("app.services.image_processor.genai.Client", return_value=mock_client):
+            from app.services.image_processor import ImageProcessorService
+            svc = ImageProcessorService()
+            result = svc.summarize_image(str(image_file), "chart.png")
 
         assert result == "A chart showing revenue growth"
 
@@ -61,16 +65,12 @@ class TestImageProcessorService:
         image_file = tmp_path / "chart.png"
         image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
 
-        mock_model = MagicMock()
-        mock_model.generate_content.side_effect = Exception("API Error")
+        mock_client = _make_mock_client(side_effect=Exception("API Error"))
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            with patch("google.generativeai.configure"), \
-                 patch("google.generativeai.GenerativeModel", return_value=mock_model):
-                from app.services.image_processor import ImageProcessorService
-                svc = ImageProcessorService()
-                result = svc.summarize_image(str(image_file), "chart.png")
+        with patch("app.services.image_processor.genai.Client", return_value=mock_client):
+            from app.services.image_processor import ImageProcessorService
+            svc = ImageProcessorService()
+            result = svc.summarize_image(str(image_file), "chart.png")
 
         assert result == "[Image: unable to process - chart.png]"
 
@@ -81,17 +81,14 @@ class TestImageProcessorService:
         image_file = tmp_path / "photo.png"
         image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            with patch("google.generativeai.configure") as mock_configure, \
-                 patch("google.generativeai.GenerativeModel") as mock_gm:
-                from app.services.image_processor import ImageProcessorService
-                svc = ImageProcessorService()
-                result = svc.summarize_image(str(image_file), "photo.png")
+        with patch("app.services.image_processor.genai.Client") as mock_client_cls:
+            from app.services.image_processor import ImageProcessorService
+            svc = ImageProcessorService()
+            result = svc.summarize_image(str(image_file), "photo.png")
 
         assert result == "[Image: unable to process - photo.png]"
-        # Gemini should NOT have been called at all
-        mock_gm.assert_not_called()
+        # Gemini client should NOT have been created at all
+        mock_client_cls.assert_not_called()
 
     def test_api_key_not_logged(self, tmp_path, monkeypatch, caplog):
         """API key value must never appear in any log message."""
@@ -101,12 +98,10 @@ class TestImageProcessorService:
         image_file = tmp_path / "photo.png"
         image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            with caplog.at_level(logging.DEBUG, logger="app.services.image_processor"):
-                from app.services.image_processor import ImageProcessorService
-                svc = ImageProcessorService()
-                svc.summarize_image(str(image_file), "photo.png")
+        with caplog.at_level(logging.DEBUG, logger="app.services.image_processor"):
+            from app.services.image_processor import ImageProcessorService
+            svc = ImageProcessorService()
+            svc.summarize_image(str(image_file), "photo.png")
 
         for record in caplog.records:
             assert secret_value not in record.getMessage(), (
@@ -121,27 +116,22 @@ class TestImageProcessorService:
         image_file.write_bytes(b"\x89PNG\r\n\x1a\n")
 
         mock_response = _make_mock_response("Final success text")
-        mock_model = MagicMock()
-        mock_model.generate_content.side_effect = [
+        mock_client = _make_mock_client(side_effect=[
             Exception("err 1"),
             Exception("err 2"),
             mock_response,
-        ]
+        ])
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            with patch("google.generativeai.configure"), \
-                 patch("google.generativeai.GenerativeModel", return_value=mock_model), \
-                 patch(
-                     "app.services.image_processor.wait_exponential",
-                     return_value=MagicMock(return_value=0),
-                 ):
-                # Reload to get a fresh instance with patched wait
-                import importlib
-                import app.services.image_processor as _mod
-                importlib.reload(_mod)
-                svc = _mod.ImageProcessorService()
-                result = svc.summarize_image(str(image_file), "chart.png")
+        with patch("app.services.image_processor.genai.Client", return_value=mock_client), \
+             patch(
+                 "app.services.image_processor.wait_exponential",
+                 return_value=MagicMock(return_value=0),
+             ):
+            import importlib
+            import app.services.image_processor as _mod
+            importlib.reload(_mod)
+            svc = _mod.ImageProcessorService()
+            result = svc.summarize_image(str(image_file), "chart.png")
 
         assert result == "Final success text"
-        assert mock_model.generate_content.call_count == 3
+        assert mock_client.models.generate_content.call_count == 3
