@@ -31,7 +31,7 @@ class FolderResponse(FolderBase):
 
 class DocumentBase(BaseModel):
     filename: str
-    folder_id: int
+    folder_id: Optional[int] = None
     metadata_json: Optional[str] = None
 
 class DocumentCreate(DocumentBase):

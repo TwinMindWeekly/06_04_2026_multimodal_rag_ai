@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from app.core.database import Base, get_db
@@ -14,7 +15,8 @@ TEST_DATABASE_URL = "sqlite://"
 def test_engine():
     engine = create_engine(
         TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False}
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
     yield engine

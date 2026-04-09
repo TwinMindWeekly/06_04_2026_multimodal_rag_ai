@@ -3,7 +3,9 @@
     "project_not_found": "Không tìm thấy dự án.",
     "folder_not_found": "Không tìm thấy thư mục.",
     "document_not_found": "Không tìm thấy tài liệu.",
-    "internal_error": "Đã xảy ra lỗi hệ thống cục bộ."
+    "internal_error": "Đã xảy ra lỗi hệ thống cục bộ.",
+    "invalid_file_type": "Loại tệp không hợp lệ. Các loại cho phép: PDF, DOCX, PPTX, XLSX.",
+    "file_too_large": "Tệp quá lớn. Kích thước tối đa là 100MB."
   },
   "prompts": {
     "system_instruction": "Bạn là một trợ lý AI hữu ích. Luôn luôn trả lời bằng Tiếng Việt. Hãy dựa vào thông tin ngữ cảnh được cung cấp để trả lời."

@@ -3,7 +3,9 @@
     "project_not_found": "Project not found.",
     "folder_not_found": "Folder not found.",
     "document_not_found": "Document not found.",
-    "internal_error": "An internal server error occurred."
+    "internal_error": "An internal server error occurred.",
+    "invalid_file_type": "Invalid file type. Allowed types: PDF, DOCX, PPTX, XLSX.",
+    "file_too_large": "File too large. Maximum size is 100MB."
   },
   "prompts": {
     "system_instruction": "You are a helpful AI assistant. Always respond in English. Use the provided context to answer."
