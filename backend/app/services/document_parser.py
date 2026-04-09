@@ -64,32 +64,32 @@ def process_and_update_document(document_id: int):
             
         parser = DocumentParserService(extract_images=True)
         result = parser.parse_document(db_document.file_path, document_id)
-    
-    # Update document metadata
-    current_metadata = json.loads(db_document.metadata_json) if db_document.metadata_json else {}
-    current_metadata.update(result["metadata"])
-    db_document.metadata_json = json.dumps(current_metadata)
-    
-    db.commit()
-    
-    # Ingest text chunks into Vector DB
-    if result.get("text_chunks"):
-        metadatas = []
-        for i, chunk in enumerate(result["text_chunks"]):
-            metadatas.append({
-                "document_id": document_id,
-                "project_id": db_document.folder.project_id if db_document.folder else "none",
-                "filename": db_document.filename,
-                "chunk_index": i
-            })
-            
-        proj_id = db_document.folder.project_id if db_document.folder else None
-        vector_store.insert_documents(
-            text_chunks=result["text_chunks"],
-            metadatas=metadatas,
-            project_id=proj_id
-        )
         
+        # Update document metadata
+        current_metadata = json.loads(db_document.metadata_json) if db_document.metadata_json else {}
+        current_metadata.update(result["metadata"])
+        db_document.metadata_json = json.dumps(current_metadata)
+        
+        db.commit()
+        
+        # Ingest text chunks into Vector DB
+        if result.get("text_chunks"):
+            metadatas = []
+            for i, chunk in enumerate(result["text_chunks"]):
+                metadatas.append({
+                    "document_id": document_id,
+                    "project_id": db_document.folder.project_id if db_document.folder else "none",
+                    "filename": db_document.filename,
+                    "chunk_index": i
+                })
+                
+            proj_id = db_document.folder.project_id if db_document.folder else None
+            vector_store.insert_documents(
+                text_chunks=result["text_chunks"],
+                metadatas=metadatas,
+                project_id=proj_id
+            )
+            
         return result
     finally:
         db.close()
