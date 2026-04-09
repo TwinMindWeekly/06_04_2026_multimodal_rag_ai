@@ -91,8 +91,10 @@ class TestSearchEndpoint:
         assert call_kwargs is not None
 
     @patch('app.routers.search.vector_store.similarity_search_mmr')
-    def test_search_provider_mismatch(self, mock_mmr, client):
+    @patch('app.routers.search.EmbeddingFactory.get_embedding_model')
+    def test_search_provider_mismatch(self, mock_emb_factory, mock_mmr, client):
         """GET /api/search with provider mismatch raises ValueError -> 400."""
+        mock_emb_factory.return_value = MagicMock()
         mock_mmr.side_effect = ValueError(
             'Embedding provider mismatch: collection uses "local", '
             'active provider is "openai". Re-index to switch providers.'
