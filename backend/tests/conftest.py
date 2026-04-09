@@ -2,6 +2,17 @@ import sys
 from unittest.mock import MagicMock
 
 # ---------------------------------------------------------------------------
+# Pre-mock google.genai to prevent ImportError in environments without the package.
+# image_processor.py does 'from google import genai' at import time.
+# ---------------------------------------------------------------------------
+if 'google.genai' not in sys.modules:
+    _mock_google = MagicMock()
+    _mock_genai = MagicMock()
+    sys.modules.setdefault('google', _mock_google)
+    sys.modules.setdefault('google.genai', _mock_genai)
+    _mock_google.genai = _mock_genai
+
+# ---------------------------------------------------------------------------
 # Pre-mock unstructured.partition.auto BEFORE any app module is imported.
 #
 # unstructured.partition.image imports detectron2/torch which causes a
