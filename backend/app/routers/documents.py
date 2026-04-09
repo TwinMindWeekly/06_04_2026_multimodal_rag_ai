@@ -35,15 +35,18 @@ async def upload_document(
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
-    # Save file
+    # Save file efficiently using chunks to prevent RAM starvation (Memory Leak & OOM issue)
+    import shutil
     with open(file_path, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Get actual file size
+    file_size = os.path.getsize(file_path)
 
     # Save to db
     metadata = {
         "original_name": file.filename,
-        "size_bytes": len(content),
+        "size_bytes": file_size,
         "content_type": file.content_type
     }
 
@@ -73,8 +76,11 @@ def delete_document(document_id: int, db: Session = Depends(get_db), lang: str =
         raise HTTPException(status_code=404, detail=t("errors.document_not_found", lang))
         
     # Delete physical file
-    if os.path.exists(db_document.file_path):
-        os.remove(db_document.file_path)
+    try:
+        if os.path.exists(db_document.file_path):
+            os.remove(db_document.file_path)
+    except Exception as e:
+        print(f"Warning: Failed to delete physical file {db_document.file_path}: {e}")
         
     db.delete(db_document)
     db.commit()
